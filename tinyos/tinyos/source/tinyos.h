@@ -9,7 +9,7 @@
 #ifndef tinyos_h   	/*Checks if tinyos_h is not defined.*/
 #define tinyos_h	/*Defines tinyos_h to indicate that this file has been included.*/
 
-#define elementsof(a)     (sizeof(a)/sizeof(a[0]))
+#define elementsof(a)     (sizeof(a)/sizeof(a[0]))    /*Computes the number of elements in an array a.*/
 #define min(a, b)         (((a) < (b)) ? (a) : (b))
 #define max(a, b)         (((a) > (b)) ? (a) : (b))
 #define swap(type, a, b)  do { type c = a; a = b; b = c; } while(0)
@@ -36,7 +36,7 @@ typedef struct FILE {
 
 #define stdin  ((FILE*)0x00000001)
 #define stdout ((FILE*)0x00000002)
-#define stderr ((FILE*)0x00000003)
+#define stderr ((FILE*)0x00000003)  /*Standar error streams:*/
 
 void  kputchar(char c);
 void  kprintn(int n, int base);
