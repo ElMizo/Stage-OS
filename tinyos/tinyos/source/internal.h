@@ -9,15 +9,18 @@
 #ifndef internal_h
 #define internal_h
 
-
+                          
 /* ------------------------------------------------------------------------- */
 /* source/library/malloc.c                                                   */
 /* ------------------------------------------------------------------------- */
-typedef struct E820 {
-    unsigned __int64 base;
-    unsigned __int64 size;
-    unsigned __int32 flag;
-    unsigned __int32 meta;
+
+/* Memory Mapping Structures */
+
+typedef struct E820 { 
+    unsigned __int64 base;      /*  Base address of the memory region. */
+    unsigned __int64 size;	/* Size of the memory region. */
+    unsigned __int32 flag;	/* Flags indicating the type of memory */
+    unsigned __int32 meta; 	/* Metadata related to the memory region. */
 } E820;
 
 #define MEMMAPSIZE (100)
@@ -26,13 +29,16 @@ typedef struct MEMMAP {
 	int   size;
 } MEMMAP;
 
-int memmap_init(void);
+int memmap_init(void);   /* Function to initialize the memory map.*/  
 
 
 /* ------------------------------------------------------------------------- */
 /* source/devices/terminal.c                                                 */
 /* ------------------------------------------------------------------------- */
-char _cdecl tty_getc(void);
+char _cdecl tty_getc(void);                                                                                        /*_cdecl (C Declaration): The _cdecl (or __cdecl) calling convention is commonly used in C and C++ programs on the x86 architecture. Here are its characteristics:
+															Arguments Order: Arguments are passed on the stack from right to left.
+															Stack Cleanup: The caller is responsible for cleaning up the stack after the function call.
+															Register Usage: The EAX, ECX, and EDX registers are considered volatile, meaning they can be freely used by the function, while other registers must be preserved.*/
 void _cdecl tty_putc(char c);
 int  _cdecl tty_open(char *path, char *access);
 int  _cdecl tty_close(void);
