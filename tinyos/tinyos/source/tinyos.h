@@ -7,9 +7,9 @@
 /* ========================================================================= */
 
 #ifndef tinyos_h   	/*Checks if tinyos_h is not defined.*/
-#define tinyos_h	/*Defines tinyos_h to indicate that this file has been included.*/
+#define tinyos_h	/* Defines tinyos_h to indicate that this file has been included */
 
-#define elementsof(a)     (sizeof(a)/sizeof(a[0]))    /*Computes the number of elements in an array a.*/
+#define elementsof(a)     (sizeof(a)/sizeof(a[0]))    /* Computes the number of elements in an array a */
 #define min(a, b)         (((a) < (b)) ? (a) : (b))
 #define max(a, b)         (((a) > (b)) ? (a) : (b))
 #define swap(type, a, b)  do { type c = a; a = b; b = c; } while(0)
