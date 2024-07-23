@@ -6,8 +6,8 @@
 /* UNIX type operating system.                                               */
 /* ========================================================================= */
 
-#ifndef tinyos_h
-#define tinyos_h
+#ifndef tinyos_h   	/*Checks if tinyos_h is not defined.*/
+#define tinyos_h	/*Defines tinyos_h to indicate that this file has been included.*/
 
 #define elementsof(a)     (sizeof(a)/sizeof(a[0]))
 #define min(a, b)         (((a) < (b)) ? (a) : (b))
