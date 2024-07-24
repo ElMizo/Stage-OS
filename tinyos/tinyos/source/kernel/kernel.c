@@ -11,21 +11,21 @@
 
 
 #ifdef  NDEBUG
-#undef  main
-#define main mainCRTStartup
+#undef  main                 // Undefine main if NDEBUG is defined
+#define main mainCRTStartup  // Redefine main as mainCRTStartup
 #endif
 
 
 void main(void) {
-	// if we cannot initialize the system, hang forever in shame
-	if (!init()) for (;;);
+    // If system initialization fails, hang indefinitely
+    if (!init()) for (;;);
 
-	// infinite loop
-	for (;;) {
-		USER *user = logon();
-		if (user) {
-		    shell_main(user);
-		    kfree(user, sizeof(USER));
-		}
-	}
+    // Infinite loop to handle user logins and shell interactions
+    for (;;) {
+        USER *user = logon();  // Attempt to log in a user
+        if (user) {            // If login is successful
+            shell_main(user);  // Start the shell for the logged-in user
+            kfree(user, sizeof(USER));  // Free memory allocated for the user structure
+        }
+    }
 }
