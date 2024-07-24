@@ -22,8 +22,8 @@
 int curuser = -1;
 USER users[256] = {
 	/* name    pass     home    userid     */
-	{ "root", "Ç–~4w", "/root", 0x00000001 },
-	{ "mike", "áÚÀ> ", "/mike", 0x00000002 },
+	{ "root", "Ã‡â€“~4w", "/root", 0x00000001 },
+	{ "mike", "Ã¡ÃšÃ€>Â ", "/mike", 0x00000002 },
 };
 
 
@@ -48,7 +48,7 @@ USER *logon(void) {
 
 	curuser = -1;
 	for (i = 0; i < elementsof(users); i++) {
-		if (kmemcmp(user, users[i].name, kstrlen(users[i].name)+1) == 0) {
+		if (kmemcmp(user, users[i].name, kstrlen(users[i].name)+1) == 0) {       /*this function used to compare the username input by the user with the username stored in the users array*/
 			USER *usr;
 			kmemcpy(hash, user, sizeof(hash));
 			tea_encrypt(hash, pass);
