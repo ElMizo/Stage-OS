@@ -46,18 +46,37 @@ struct process {
 };
 
 void process_init();
+<<<<<<< HEAD
 
+=======
+extern struct process *current;
+extern struct list ready_list;
+extern struct list grave_list;
+extern struct list grave_watcher_list;
+extern struct process *process_table[PROCESS_MAX_PID];
+>>>>>>> origin/anas_branch
 struct process *process_create();
 void process_delete(struct process *p);
 void process_launch(struct process *p);
 void process_pass_arguments(struct process *p, int argc, char **argv);
 void process_inherit(struct process *parent, struct process *child);
 void process_selective_inherit(struct process *parent, struct process *child, int * fds, int fd_len);
+<<<<<<< HEAD
 
 void process_stack_reset(struct process *p, unsigned size);
 void process_kstack_reset(struct process *p, unsigned entry_point);
 void process_kstack_copy(struct process *parent, struct process *child);
 
+=======
+void active_proc(); //added by anas
+extern struct process *process_table[PROCESS_MAX_PID];
+extern struct process *current;
+extern struct list ready_list;
+void process_stack_reset(struct process *p, unsigned size);
+void process_kstack_reset(struct process *p, unsigned entry_point);
+void process_kstack_copy(struct process *parent, struct process *child);
+void ready_traverse(struct list *readylist);
+>>>>>>> origin/anas_branch
 int process_data_size_set(struct process *p, unsigned size);
 int process_stack_size_set(struct process *p, unsigned size);
 

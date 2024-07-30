@@ -178,7 +178,18 @@ static int kshell_execute(int argc, const char **argv)
 		} else {
 			printf("run: requires argument.\n");
 		}
+<<<<<<< HEAD
 	} else if(!strcmp(cmd, "exec")) {
+=======
+	}
+       else if(!strcmp(cmd, "ps")){
+	       active_proc();
+       }
+       else if(!strcmp(cmd, "init")){
+	       process_create();
+	       }
+	else if(!strcmp(cmd, "exec")) {
+>>>>>>> origin/anas_branch
 		if(argc > 1) {
 			int fd = sys_open_file(KNO_STDDIR,argv[1],0,0);
 			if(fd>=0) {

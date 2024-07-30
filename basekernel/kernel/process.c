@@ -218,7 +218,12 @@ struct process *process_create()
 		p->ktable[i] = 0;
 	}
 
+<<<<<<< HEAD
 	p->state = PROCESS_STATE_READY;
+=======
+	p->state = PROCESS_STATE_RUNNING;
+	printf("%d\n", p->pid);
+>>>>>>> origin/anas_branch
 
 	return p;
 }
@@ -298,7 +303,11 @@ static void process_switch(int newstate)
 	interrupt_unblock();
 }
 
+<<<<<<< HEAD
 int allow_preempt = 0;
+=======
+int allow_preempt = 1;
+>>>>>>> origin/anas_branch
 
 void process_preempt()
 {
@@ -316,7 +325,11 @@ void process_yield()
 
 void process_exit(int code)
 {
+<<<<<<< HEAD
 	// printf("process %d exiting with status %d...\n", current->pid, code); --> transport to kshell run
+=======
+	printf("process %d exiting with status %d...\n", current->pid, code); //--> transport to kshell run
+>>>>>>> origin/anas_branch
 	current->exitcode = code;
 	current->exitreason = PROCESS_EXIT_NORMAL;
 	process_wakeup_parent(&grave_watcher_list);	// On exit, wake up parent if need be
@@ -328,6 +341,18 @@ void process_wait(struct list *q)
 	list_push_tail(q, &current->node);
 	process_switch(PROCESS_STATE_BLOCKED);
 }
+<<<<<<< HEAD
+=======
+void active_proc(){  //added by anas
+	for (int i=0; i<PROCESS_MAX_PID; i++){
+		if(process_table[i]){
+			printf("%d\n", process_table[i]->pid);
+		}
+	}
+}
+
+
+>>>>>>> origin/anas_branch
 
 void process_wakeup(struct list *q)
 {
