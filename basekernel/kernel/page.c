@@ -11,97 +11,59 @@ See the file LICENSE for details.
 #include "memorylayout.h"
 #include "kernelcore.h"
 
-static uint32_t pages_free = 0;
-static uint32_t pages_total = 0;
+#define PAGE_SIZE_SHIFT 12
+#define PAGE_SIZE (1 << PAGE_SIZE_SHIFT)
+#define MAIN_MEMORY_START 0x100000
 
-static uint32_t *freemap = 0;
-static uint32_t freemap_bits = 0;
-static uint32_t freemap_bytes = 0;
-static uint32_t freemap_cells = 0;
-static uint32_t freemap_pages = 0;
+static uint32_t total_pages;
+static uint32_t free_pages;
+static uint32_t *page_map;
+static uint32_t page_map_size;
 
-static void *main_memory_start = (void *) MAIN_MEMORY_START;
+void page_init() {
+    total_pages = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
+    free_pages = total_pages;
 
-#define CELL_BITS (8*sizeof(*freemap))
+    page_map_size = (total_pages + 7) / 8;
+    page_map = (uint32_t *) MAIN_MEMORY_START;
+    memset(page_map, 0xff, page_map_size);
 
-void page_init()
-{
-	int i;
+    for (int i = 0; i < page_map_size / PAGE_SIZE; i++) {
+        page_alloc(0);
+    }
 
-	pages_total = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
-	pages_free = pages_total;
-	printf("memory: %d MB (%d KB) total\n", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
-
-	freemap = main_memory_start;
-	freemap_bits = pages_total;
-	freemap_bytes = 1 + freemap_bits / 8;
-	freemap_cells = 1 + freemap_bits / CELL_BITS;
-	freemap_pages = 1 + freemap_bytes / PAGE_SIZE;
-
-	printf("memory: %d bits %d bytes %d cells %d pages\n", freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
-
-	memset(freemap, 0xff, freemap_bytes);
-	for(i = 0; i < freemap_pages; i++)
-		page_alloc(0);
-
-	// This is ahack that I don't understand yet.
-	// vmware doesn't like the use of a particular page
-	// close to 1MB, but what it is used for I don't know.
-
-	freemap[0] = 0x0;
-
-	printf("memory: %d MB (%d KB) available\n", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
+    page_map[0] = 0x0;     //not understood
 }
 
-void page_stats( uint32_t *nfree, uint32_t *ntotal )
-{
-	*nfree = pages_free;
-	*ntotal = pages_total;
+void page_stats(uint32_t *nfree, uint32_t *ntotal) {
+    *nfree = free_pages;
+    *ntotal = total_pages;
 }
 
-void *page_alloc(bool zeroit)
-{
-	uint32_t i, j;
-	uint32_t cellmask;
-	uint32_t pagenumber;
-	void *pageaddr;
+void *page_alloc(bool zeroit) {
+    uint32_t page_idx = 0;
+    while (page_idx < page_map_size) {
+        uint32_t page_mask = 1 << (page_idx % 8);
+        if (page_map[page_idx / 8] & page_mask) {
+            page_map[page_idx / 8] &= ~page_mask;
+            void *page_addr = (page_idx << PAGE_SIZE_SHIFT) + MAIN_MEMORY_START;
+            if (zeroit) {
+                memset(page_addr, 0, PAGE_SIZE);
+            }
+            free_pages--;
+            return page_addr;
+        }
+        page_idx++;
+    }
 
-	if(!freemap) {
-		printf("memory: not initialized yet!\n");
-		return 0;
-	}
-
-	for(i = 0; i < freemap_cells; i++) {
-		if(freemap[i] != 0) {
-			for(j = 0; j < CELL_BITS; j++) {
-				cellmask = (1 << j);
-				if(freemap[i] & cellmask) {
-					freemap[i] &= ~cellmask;
-					pagenumber = i * CELL_BITS + j;
-					pageaddr = (pagenumber << PAGE_BITS) + main_memory_start;
-					if(zeroit)
-						memset(pageaddr, 0, PAGE_SIZE);
-					pages_free--;
-					//printf("page: alloc %d\n",pages_free);
-					return pageaddr;
-				}
-			}
-		}
-	}
-
-	printf("memory: WARNING: everything allocated\n");
-	halt();
-
-	return 0;
+    printf("memory: WARNING: everything allocated\n");
+    halt();
+    return 0;
 }
 
-void page_free(void *pageaddr)
-{
-	uint32_t pagenumber = (pageaddr - main_memory_start) >> PAGE_BITS;
-	uint32_t cellnumber = pagenumber / CELL_BITS;
-	uint32_t celloffset = pagenumber % CELL_BITS;
-	uint32_t cellmask = (1 << celloffset);
-	freemap[cellnumber] |= cellmask;
-	pages_free++;
-	//printf("page: free %d\n",pages_free);
+void page_free(void *pageaddr) {
+    uint32_t page_idx = (pageaddr - MAIN_MEMORY_START) >> PAGE_SIZE_SHIFT;
+    uint32_t page_mask = 1 << (page_idx % 8);
+    page_map[page_idx / 8] |= page_mask;
+    free_pages++;
 }
