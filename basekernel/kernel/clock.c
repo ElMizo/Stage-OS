@@ -10,7 +10,7 @@ See the file LICENSE for details.
 #include "process.h"
 
 // Minimum PIT frequency is 18.2Hz.
-#define CLICKS_PER_SECOND 20
+#define CLICKS_PER_SECOND 100   //changed to make OS more responsive, still need to test the consequences
 
 #define TIMER0		0x40
 #define TIMER_MODE	0x43

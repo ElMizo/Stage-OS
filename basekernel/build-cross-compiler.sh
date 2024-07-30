@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 GCC="gcc-8.2.0"
 BINUTILS="binutils-2.31.1"
