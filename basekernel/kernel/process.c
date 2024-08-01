@@ -25,7 +25,10 @@ struct list grave_list = { 0, 0 };               // List of terminated processes
 struct list grave_watcher_list = { 0, 0 };       // List of parent processes waiting for children
 struct process *process_table[PROCESS_MAX_PID] = { 0 };  // Table of all processes
 
-// Initialize the process system
+/*
+ * Initialize the process system by creating the first process,
+ * loading its page table, enabling paging, and setting its state to ready.
+ */
 void process_init()
 {
     current = process_create();                  // Create the first process
@@ -38,7 +41,11 @@ void process_init()
     current->waiting_for_child_pid = 0;          // Initialize waiting_for_child_pid to 0
 }
 
-// Reset the kernel stack for a process
+/*
+ * Reset the kernel stack for a process. This function sets up the initial
+ * values of the stack for a process, including the instruction pointer,
+ * stack pointer, and segment registers.
+ */
 void process_kstack_reset(struct process *p, unsigned entry_point)
 {
     struct x86_stack *s;
@@ -62,7 +69,11 @@ void process_kstack_reset(struct process *p, unsigned entry_point)
     s->ss = X86_SEGMENT_USER_DATA;                  // Set stack segment
 }
 
-// Copy the kernel stack from parent to child process
+/*
+ * Copy the kernel stack from the parent process to the child process.
+ * This function is used during process creation (fork) to ensure the
+ * child process has a copy of the parent's stack.
+ */
 void process_kstack_copy(struct process *parent, struct process *child)
 {
     child->kstack_top = child->kstack + PAGE_SIZE - 8;        // Set top of the child's kernel stack
@@ -80,13 +91,10 @@ void process_kstack_copy(struct process *parent, struct process *child)
 }
 
 /*
-Valid pids start at 1 and go to PROCESS_MAX_PID.
-To avoid confusion, keep picking increasing
-pids until it is necessary to wrap around.
-"last" is the most recently selected pid.
-*/
-
-// Allocate a process ID
+ * Allocate a process ID (pid). This function finds an available pid
+ * from the process table and returns it. If no pids are available,
+ * it returns 0.
+ */
 static int process_allocate_pid()
 {
     static int last = 0;  // Last allocated pid
@@ -110,13 +118,17 @@ static int process_allocate_pid()
     return 0;  // Return 0 if no PID is available
 }
 
-// Inherit file descriptors selectively from parent to child process
+/*
+ * Selectively inherit file descriptors from the parent process to the child process.
+ * This function copies specific file descriptors from the parent to the child based
+ * on the provided array of file descriptors.
+ */
 void process_selective_inherit(struct process *parent, struct process *child, int * fds, int length)
 {
     int i;
 
-    for (i=0;i<length;i++) {  // Loop through file descriptors
-        if(fds[i]>-1) {  // Check if the file descriptor is valid
+    for (i = 0; i < length; i++) {  // Loop through file descriptors
+        if(fds[i] > -1) {  // Check if the file descriptor is valid
             child->ktable[i] = kobject_copy(parent->ktable[fds[i]]);  // Copy the kernel object
         } else {
             child->ktable[i] = 0;  // Set to null if not valid
@@ -126,62 +138,13 @@ void process_selective_inherit(struct process *parent, struct process *child, in
     child->ppid = parent->pid;  // Set child's parent PID
 }
 
-// Inherit all file descriptors from parent to child process
+/*
+ * Inherit all file descriptors from the parent process to the child process.
+ * This function copies all valid file descriptors from the parent to the child.
+ */
 void process_inherit(struct process *parent, struct process *child)
 {
     /* Child inherits everything parent inherits */
     int i;
-    int * fds = kmalloc(sizeof(int)*PROCESS_MAX_OBJECTS);  // Allocate memory for file descriptors
-    for (i = 0; i < PROCESS_MAX_OBJECTS; i++)  // Loop through all objects
-    {
-        if (parent->ktable[i]) {  // Check if the parent has the object
-            fds[i] = i;  // Set file descriptor
-        } else {
-            fds[i] = -1;  // Set to -1 if not valid
-        }
-    }
-    process_selective_inherit(parent, child, fds, PROCESS_MAX_OBJECTS);  // Call selective inherit function
-    kfree(fds);  // Free the allocated memory
-}
-
-// Set the data size of a process
-int process_data_size_set(struct process *p, unsigned size)
-{
-    // XXX check valid ranges
-    // XXX round up to page size
-
-    if(size % PAGE_SIZE) {  // Check if the size is not a multiple of the page size
-        size += (PAGE_SIZE - size % PAGE_SIZE);  // Round up to the nearest page size
-    }
-
-    if(size > p->vm_data_size) {  // Check if the new size is greater than the current size
-        uint32_t start = PROCESS_ENTRY_POINT + p->vm_data_size;  // Calculate the start address
-        pagetable_alloc(p->pagetable, start, size, PAGE_FLAG_USER | PAGE_FLAG_READWRITE | PAGE_FLAG_CLEAR);  // Allocate pages
-    } else if(size < p->vm_data_size) {  // Check if the new size is less than the current size
-        uint32_t start = PROCESS_ENTRY_POINT + size;  // Calculate the start address
-        pagetable_free(p->pagetable, start, p->vm_data_size);  // Free pages
-    } else {
-        // requested size is equal to current.
-    }
-
-    p->vm_data_size = size;  // Update the process data size
-    pagetable_refresh();  // Refresh the page table
-
-    return 0;  // Return success
-}
-
-// Set the stack size of a process
-int process_stack_size_set(struct process *p, unsigned size)
-{
-    // XXX check valid ranges
-    // XXX round up to page size
-
-    if(size > p->vm_stack_size) {  // Check if the new size is greater than the current size
-        uint32_t start = -size;  // Calculate the start address
-        pagetable_alloc(p->pagetable, start, size - p->vm_stack_size, PAGE_FLAG_USER | PAGE_FLAG_READWRITE | PAGE_FLAG_CLEAR);  // Allocate pages
-    } else {
-        uint32_t start = -p->vm_stack_size;  // Calculate the start address
-        pagetable_free(p->pagetable, start, p->vm_stack_size - size);  // Free pages
-    }
-
-    p->vm_stack_size = size;  // Update the
+    int * fds = kmalloc(sizeof(int) * PROCESS_MAX_OBJECTS);  // Allocate memory for file descriptors
+    for (i = 0
