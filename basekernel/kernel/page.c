@@ -13,7 +13,6 @@ See the file LICENSE for details.
 
 #define PAGE_SIZE_SHIFT 12
 #define PAGE_SIZE (1 << PAGE_SIZE_SHIFT)
-#define MAIN_MEMORY_START 0x100000
 
 static uint32_t total_pages;
 static uint32_t free_pages;
