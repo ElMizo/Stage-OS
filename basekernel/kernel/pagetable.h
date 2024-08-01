@@ -26,8 +26,6 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr);
 void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags);
 void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
 void pagetable_delete(struct pagetable *p);
-struct pagetable *pagetable_duplicate(struct pagetable *p);
-struct pagetable *pagetable_load(struct pagetable *p);
 void pagetable_enable();
 void pagetable_refresh();
 
