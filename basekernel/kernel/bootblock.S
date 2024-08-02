@@ -165,7 +165,7 @@ partition_start_lba:
 partition_length:
     .long 0
 credits:
-    .asciz "this work was done by Hamza Aarab, Hassan Labyad, Khalid Elkoussami, Abdelaali Chattaoui, Anas Azouane"
+    .asciz "This work was done by Hamza Aarab, Hassan Labyad, Khalid Elkoussami, Abdelaali Chattaoui, Anas Azouane"
 
 .org 510
 bootflag:
