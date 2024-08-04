@@ -54,6 +54,8 @@ void  page_free(void *addr); //frees a previously allocated page of memory
  * The page_free() function frees a previously allocated memory page, updating page allocation 
  * statistics and making the page available for future allocations.
  * 
+ * @param addr is the address of the page to be freed.
+ * 
  ********************************************************************************************/
 
 void  page_stats( uint32_t *nfree, uint32_t *ntotal ); //takes statistics about the page management system
