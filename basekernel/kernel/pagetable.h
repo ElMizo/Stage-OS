@@ -33,6 +33,27 @@
 #define PAGE_FLAG_NOCLEAR     0
 #define PAGE_FLAG_CLEAR       8
 
+/*************************************************************************
+                       Breakdown of a Virtual Address
+**************************************************************************
+* A 32-bit virtual address can be split into parts for indexing into a 
+* two-level page table structure.
+*
+* Higher Bits: Used to index into the first-level page table.
+* Middle Bits: Used to index into the second-level page table.
+* Lower Bits: Represent the offset within the page.
+* For a typical 32-bit address, if we use 10 bits for each level of 
+* the page table and 12 bits for the offset, the virtual address can 
+*be divided as follows:
+* |   10 bits   |   10 bits   |   12 bits   |
+* |  Directory  |    Table    |    Offset   |
+*
+* Shifting right by 12 bits removes the page offset, isolating the indices 
+* needed for the page tables.
+* Shifting left by 12 bits converts a page frame number to a physical address.
+***************************************************************************/
+
+
 /**
  * @brief Creates a new page table
  *
@@ -129,7 +150,6 @@ void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
  * @param p is a pointer to the page table to be deleted
  */
 void pagetable_delete(struct pagetable *p);
-
 /**
  * @brief Loads a page table
  *
@@ -141,7 +161,6 @@ void pagetable_delete(struct pagetable *p);
  * @return a pointer to the loaded page table
  */
 struct pagetable *pagetable_load(struct pagetable *p);
-
 /**
  * @brief Enables paging
  *
