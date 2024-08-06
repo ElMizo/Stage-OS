@@ -7,12 +7,18 @@
  * @file pagetable.h 
  * @brief memory management module for a kernel, by implementing paging
  *
- * The memory management module is a critical kernel component that divides
- * physical memory into pages and uses a hierarchical page table to map 
- * virtual addresses to physical addresses. It allocates and deallocates 
- * memory, handles page faults, and employs a page replacement algorithm 
- * to manage memory efficiently, ensuring system performance, security, 
- * and reliability.
+  * Paging is a mechanism that accommodates memory protection and logical
+ * addressing. Each running process gets its own private address space,
+ * enhancing security and stability. Pages, Page Tables, and Page Directories
+ * are typically 4 KB in size and must be aligned to 4 KB boundaries.
+ * 
+ * The Page Directory, a 4 KB array of pointers to Page Tables, maps logical
+ * addresses to physical addresses. 
+ * Each Page Table, also a 4 KB array, contains pointers to 4 KB Pages.
+ * The positions in the Page Directory and Page Table define logical addresses,
+ * while the pointers held in the Page Tables define physical addresses.
+ * The low-order bits of these pointers are not part of the address but are 
+ * used to define privileges and access rights.
  *
  * @author Khalid ElKoussami, Hamza Aarab, Abdelali Chattaoui, Anas Azouane, ElHassan Labyad
  * @date 04/08/2024
