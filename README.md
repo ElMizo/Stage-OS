@@ -4,3 +4,14 @@
 Made by : Douglas Thain (dthain)
 
 Modified by : Khalid ElKoussami, Hamza Aarab, Abdelali Chattaoui, Anas Azouane, ElHassan Labyad.
+
+
+# memory management:
+## Paging
+Paging is a memory management scheme that eliminates the need for contiguous allocation of physical memory. This allows the physical address space of a process to be noncontiguous, making efficient use of available memory.
+### Paging in simple terms:
+Paging breaks down memory into fixed-size blocks called "pages" for the process's logical memory, and into blocks of the same size called "frames" for the physical memory. When a process is to be executed, its pages are loaded into any available memory frames from the disk.
+### Key Concepts
+- **Page:** A fixed-length contiguous block of virtual memory.
+- **Frame:** A fixed-length block of physical memory, of the same size as a page.
+- **Page Table:** A data structure used by the operating system to keep track of the mapping between virtual addresses and physical addresses.
