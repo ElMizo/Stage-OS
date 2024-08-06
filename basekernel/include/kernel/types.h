@@ -45,8 +45,7 @@ struct process_info {
 	int exitreason;
 };
 
-
-typedef enum {
+ypedef enum {
 	KOBJECT_FILE,
 	KOBJECT_DIR,
 	KOBJECT_DEVICE,
