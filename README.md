@@ -54,12 +54,12 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
     |   Space)      |          |  (Translation |           |  (Contains    |           |  (Contains    |           |  (Contains    |           |  (Divided into|           |  (Indicates   |
     |               |          |   of Virtual  |           |   1024 4-byte |           |   1024 4-byte |           |   Page Frame  |           |   4 KiB Page  |           |   whether the |
     |               |          |   Address)    |           |   entries,    |           |   entries,    |           |   Number,     |           |   Frames)     |           |   page is in  |
-    |               |          |               |           |   each pointing|          |   each pointing|           |   Page Status,|           |               |           |   physical    |
+    |               |          |               |           |   each pointing|          |   each pointing|          |   Page Status,|           |               |           |   physical    |
     |               |          |               |           |   to a Page   |           |   to a 4 KiB  |           |   Access      |           |               |           |   memory)     |
     +---------------+          +---------------+           |   table)      |           |   Physical    |           |   Control,    |           +---------------+           +---------------+
-                                                          |               |           |   Page Frame) |           |   Cache       |
-                                                          +---------------+           +---------------+           |   Control)    |
-                                                                                                                +---------------+
+                                                           |               |           |   Page Frame) |           |   Cache       |
+                                                           +---------------+           +---------------+           |   Control)    |
+                                                                                                                   +---------------+
 
 ## Conclusion
 Paging is a critical concept in modern operating systems that helps manage memory efficiently by breaking logical memory into fixed-size pages and mapping them to physical frames.
