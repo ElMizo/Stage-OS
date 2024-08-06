@@ -6,7 +6,7 @@ Made by : Douglas Thain (dthain)
 Modified by : Khalid ElKoussami, Hamza Aarab, Abdelali Chattaoui, Anas Azouane, ElHassan Labyad.
 
 
-# Memory management:
+# Memory management
 ## Paging
 Paging is a memory management scheme that eliminates the need for contiguous allocation of physical memory. This allows the physical address space of a process to be noncontiguous, making efficient use of available memory.
 ### Paging in simple terms:
