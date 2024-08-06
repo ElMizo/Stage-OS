@@ -39,6 +39,8 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 
 # Memory Management Diagram
 
+# Memory Management Diagram
+
           Process                  Memory Management            Paging Directory                Page Table                Page Table Entry (PTE)         Physical Memory               Page Presence Bit (PPB)
        (Virtual Address                Unit (MMU)                       (PD)                           (PT)                           (Contains)                       (RAM)                        (Indicates
             Space)                (Translation of Virtual      (Contains 1024 4-byte          (Contains 1024 4-byte           Page Frame Number,                  (Divided into               whether the page
@@ -54,12 +56,55 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
     |   Space)      |          |  (Translation |           |  (Contains    |           |  (Contains    |           |  (Contains    |           |  (Divided into|           |  (Indicates   |
     |               |          |   of Virtual  |           |   1024 4-byte |           |   1024 4-byte |           |   Page Frame  |           |   4 KiB Page  |           |   whether the |
     |               |          |   Address)    |           |   entries,    |           |   entries,    |           |   Number,     |           |   Frames)     |           |   page is in  |
-    |               |          |               |           |   each pointing|          |   each pointing|          |   Page Status,|           |               |           |   physical    |
+    |               |          |               |           |   each pointing|          |   each pointing|           |   Page Status,|           |               |           |   physical    |
     |               |          |               |           |   to a Page   |           |   to a 4 KiB  |           |   Access      |           |               |           |   memory)     |
     +---------------+          +---------------+           |   table)      |           |   Physical    |           |   Control,    |           +---------------+           +---------------+
-                                                           |               |           |   Page Frame) |           |   Cache       |
-                                                           +---------------+           +---------------+           |   Control)    |
-                                                                                                                   +---------------+
+                                                          |               |           |   Page Frame) |           |   Cache       |
+                                                          +---------------+           +---------------+           |   Control)    |
+                                                                                                                +---------------+
 
+                                  Page Fault                    Page Fault                   Page Replacement               Disk Storage                      Disk I/O
+                                  (Trap to                      Handler                      Algorithm                      (Hard Drive)                      (Read/Write)
+                                  Operating                     (Determines                  (Selects victim                 (Stores pages                    (Reads page from
+                                  System)                       cause of page                page to replace)                that are not in                   disk storage into
+                                                                fault, selects                                                 physical memory)                 physical memory, or
+                                                                replacement page)                                                                               writes page from
+                                                                                                                                                               physical memory to
+                                                                                                                                                               disk storage)
+ 
+    +---------------+          +---------------+           +---------------+           +---------------+           +---------------+           +---------------+
+    |               |          |               |           |               |           |               |           |               |           |               |
+    |  Page Fault   |   --->   |  Page Fault   |   --->    |  Page         |   --->    |  Disk         |   --->    |  Disk I/O     |           |               |
+    |  (Trap to     |          |  Handler      |           |  Replacement  |           |  Storage      |           |  (Read/Write) |           |               |
+    |   Operating   |          |  (Determines  |           |  Algorithm    |           |  (Hard Drive) |           |               |           |               |
+    |   System)     |          |   cause of    |           |  (Selects     |           |  (Stores      |           |  (Reads page  |           |               |
+    |               |          |   page fault, |           |   victim page |           |   pages that  |           |   from disk   |           |               |
+    |               |          |   selects     |           |   to replace) |           |   are not in  |           |   storage into|           |               |
+    |               |          |   replacement |           |               |           |   physical    |           |   physical    |           |               |
+    |               |          |   page)       |           |               |           |   memory)     |           |   memory, or  |           |               |
+    +---------------+          +---------------+           +---------------+           +---------------+           |   writes page |           +---------------+
+                                                                                                                |   from physical|
+                                                                                                                |   memory to    |
+                                                                                                                |   disk storage |
+                                                                                                                +---------------+
+
+                                 Page Table Update               Process
+                                 (Updates page table entry       (Continued)
+                                 to reflect new mapping of       (Resumes execution with
+                                 virtual page to physical page)  updated page table)
+
+    +---------------+           +---------------+
+    |               |           |               |
+    |  Page Table   |   --->    |  Process      |
+    |  Update       |           |  (Continued)  |
+    |  (Updates     |           |  (Resumes     |
+    |   page table  |           |   execution   |
+    |   entry to    |           |   with updated|
+    |   reflect new |           |   page table) |
+    |   mapping of  |           |               |
+    |   virtual page|           |               |
+    |   to physical |           |               |
+    |   page)       |           |               |
+    +---------------+           +---------------+
 ## Conclusion
 Paging is a critical concept in modern operating systems that helps manage memory efficiently by breaking logical memory into fixed-size pages and mapping them to physical frames.
