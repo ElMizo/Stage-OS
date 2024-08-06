@@ -33,5 +33,71 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
          |  Data  |  Data  | ...  |       | Page 1      | Frame 4      |
          |        |        |      |       | Page 2      | Frame 5      |
          +--------+--------+------+       +-------------+--------------+
+
+
++---------------+          +---------------+        +----------------+          +----------------+
+|   Process     |          |  Memory       |        |  Paging        |          |  Page Table    |
+|   (Virtual    |========> |  Management   |        |  Directory     |          |  (PT)          |
+|    Address    |          |  Unit (MMU)   |=====>  |  (PD)          |          |                |
+|    Space)     |          |  (Translation |        |                |=========>|  (Contains     |
++---------------+          |   of Virtual  |        |  (Contains     |          |   1024 4-byte  |
+                           |   Address)    |        |   1024 4-byte  |          |   entries,     |
+                           +---------------+        |   entries,     |          |   each pointing|
+                                                    |   each pointing|          |   to a 4 KiB   |
+                                                    |   to a Page    |          |   Physical     |
+                                                    |   table)       |          |   Page Frame)  |
+                                                    +----------------+          +----------------+
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
+         |
+        \_/
++---------------+           +---------------+       +---------------+           +---------------+
+|  Page Table   |           |  Physical     |       |  Page Presence|           |  Page Fault   |
+|  Entry (PTE)  |           |  Memory       |       |  Bit (PPB)    |           |  (Trap to     |
+|               |           |  (RAM)        |       |               |           |   Operating   |
+|  (Contains    |=========> |               |=====> |  (Indicates   |==========>|   System)     |
+|   Page Frame  |           |  (Divided into|       |   whether the |           +---------------+   
+|   Number,     |           |   4 KiB Page  |       |   page is in  |                    |
+|   Page Status,|           |   Frames)     |       |   physical    |                    |
+|   Access      |           +---------------+       |   memory)     |                    |           
+|   Control,    |                                   +---------------+                    |           
+|   Cache       |                                                                        |           
+|   Control)    |                                                                        |           
++---------------+                                                                        |
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
+         |
+        \_/
++---------------+           +---------------+       +---------------+           +----------------+
+|  Page fault   |           |  Page         |       |  Disk Storage |           |  Disk I/O      |
+|  Handler      |           |  Remplacement |       |  (Hard Drive) |           |  (Read/Write)  |
+|               |           |  Algorithm    |       |               |           |                |
+|  (Determines  |=========> |               |=====> |  (Stores      |==========>|  (Reads page)  |
+|   Cause of    |           |  (Selects     |       |   pages that  |           |   from disk    |   
+|   page fault  |           |   victim page |       |   are not in  |           |   storage into |
+|   selects     |           |   to repalce  |       |   physical    |           |   physical     |
+|   remplacement|           +---------------+       |   memory)     |           |   Memory, or   |
+|   page)       |                                   +---------------+           |   writes page  |
++---------------+                                                               |   from physical|
+                                                                                |   memory to    |
+                                                                                |   disk storage |     
+                                                                                +----------------+
+                                                                                         |
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
+         |
+        \_/
+
++---------------+           +---------------+
+|  Page Table   |           |  Process      |
+|  Update       |           |  (Continued)  |
+|               |           |               |
+|  (Updates     |=========> |  (Resumes     |
+|   page table  |           |   execution   |
+|   entry to    |           |   with updated|
+|   reflect new |           |   page table) |
+|   mapping of  |           +---------------+
+|   virtual page|           
+|   to physical |           
+|   page)       |           
++---------------+           
+
 ## Conclusion
 Paging is a critical concept in modern operating systems that helps manage memory efficiently by breaking logical memory into fixed-size pages and mapping them to physical frames.
