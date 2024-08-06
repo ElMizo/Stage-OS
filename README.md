@@ -63,10 +63,10 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
                                                            +---------------+           +---------------+           |   Control)    |
                                                                                                                    +---------------+
 
- Page Fault                     Page Fault                  Page Replacement             Disk Storage                 Disk I/O
- (Trap to                       Handler                     Algorithm                    (Hard Drive)                (Read/Write)
-  Operating                     (Determines                 (Selects victim              (Stores pages               (Reads page from
-  System)                       cause of page                page to replace)            that are not in             disk storage into
+    Page Fault                     Page Fault                  Page Replacement             Disk Storage                 Disk I/O
+    (Trap to                       Handler                     Algorithm                    (Hard Drive)                (Read/Write)
+     Operating                     (Determines                 (Selects victim              (Stores pages               (Reads page from
+     System)                       cause of page                page to replace)            that are not in             disk storage into
                                                              fault, selects                                          physical memory,physical memory, or
                                                              replacement page)                                        writes page from
                                                                                                                       physical memory to
