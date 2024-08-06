@@ -37,11 +37,6 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 
 ### Memory Management Diagram
 
-# Memory Management Diagram
-
-# Memory Management Diagram
-
-         
     +---------------+          +---------------+           +----------------+           +---------------+           +---------------+           +---------------+           +---------------+
     |               |          |               |           |                |           |               |           |               |           |               |           |               |
     |   Process     |   --->   |  Memory       |   --->    |  Paging        |   --->    |  Page Table   |   --->    |  Page Table   |   --->    |  Physical     |   --->    |  Page Presence|
