@@ -332,7 +332,7 @@ void process_wait(struct list *q)
 void active_proc(){  //added by anas
 	for (int i=0; i<PROCESS_MAX_PID; i++){
 		if(process_table[i]){
-			printf("%d\n", process_table[i]->pid);
+			printf("The current active process had the id :\"%d\"\n", process_table[i]->pid);
 		}
 	}
 }
