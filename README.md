@@ -37,9 +37,9 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 
 +---------------+          +---------------+        +----------------+          +----------------+
 |   Process     |          |  Memory       |        |  Paging        |          |  Page Table    |
-|   (Virtual    |===  ===> |  Management   |        |  Directory     |          |  (PT)          |
-|    Address    |          |  Unit (MMU)   |=====>  |  (PD)          |          |                |
-|    Space)     |          |  (Translation |        |                |=========>|  (Contains     |
+|   (Virtual    |          |  Management   |        |  Directory     |          |  (PT)          |
+|    Address    |          |  Unit (MMU)   |        |  (PD)          |          |                |
+|    Space)     |          |  (Translation |        |                |          |  (Contains     |
 +---------------+          |   of Virtual  |        |  (Contains     |          |   1024 4-byte  |
                            |   Address)    |        |   1024 4-byte  |          |   entries,     |
                            +---------------+        |   entries,     |          |   each pointing|
@@ -84,6 +84,7 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
           _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
          |
         \_/
+
 +---------------+           +---------------+
 |  Page Table   |           |  Process      |
 |  Update       |           |  (Continued)  |
