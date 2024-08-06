@@ -16,25 +16,6 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 - **Frame:** A fixed-length block of physical memory, of the same size as a page.
 - **Page Table:** A data structure used by the operating system to keep track of the mapping between virtual addresses and physical addresses.
 ### Illustration of Paging
-            Logical Address Space          Physical Address Space
-         +------------------------+       +------------------------+
-         | Page 0 | Page 1 | ...  |       | Frame 0| Frame 1| ...  |
-         +--------+--------+----- +       +--------+--------+------+
-         |        |        |      |       |        |        |      |
-         |  Data  |  Data  | ...  |       |  Data  |  Data  | ...  |
-         |        |        |      |       |        |        |      |
-         +--------+--------+------+       +--------+--------+------+
-
-           Logical Address Space:                   Page Table:
-         +--------+--------+------+       +-------------+--------------+
-         | Page 0 | Page 1 | ...  |       | Page Number | Frame Number |
-         +--------+--------+------+       +-------------+--------------+
-         |        |        |      |       | Page 0      | Frame 2      |
-         |  Data  |  Data  | ...  |       | Page 1      | Frame 4      |
-         |        |        |      |       | Page 2      | Frame 5      |
-         +--------+--------+------+       +-------------+--------------+
-
-
 +---------------+          +---------------+        +----------------+          +----------------+
 |   Process     |          |  Memory       |        |  Paging        |          |  Page Table    |
 |   (Virtual    |          |  Management   |        |  Directory     |          |  (PT)          |
