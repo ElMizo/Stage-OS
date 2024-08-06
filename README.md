@@ -24,3 +24,12 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
          |  Data  |  Data  | ...  |       |  Data  |  Data  | ...  |
          |        |        |      |       |        |        |      |
          +--------+--------+------+       +--------+--------+------+
+
+           Logical Address Space:                   Page Table:
+         +--------+--------+------+       +-------------+--------------+
+         | Page 0 | Page 1 | ...  |       | Page Number | Frame Number |
+         +--------+--------+------+       +-------------+--------------+
+         |        |        |      |       | Page 0      | Frame 2      |
+         |  Data  |  Data  | ...  |       | Page 1      | Frame 4      |
+         |        |        |      |       | Page 2      | Frame 5      |
+         +--------+--------+------+       +-------------+--------------+
