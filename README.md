@@ -37,192 +37,29 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 
 ### Memory Management Diagram
 
-                                      +---------------+
-                                      |  Process      |
-                                      |  (Virtual     |
-                                      |   Address     |
-                                      |   Space)      |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Memory       |
-                                      |  Management   |
-                                      |  Unit (MMU)   |
-                                      |               |
-                                      |  (Translation |
-                                      |   of Virtual  |
-                                      |   Address)    |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Paging       |
-                                      |  Directory    |
-                                      |  (PD)         |
-                                      |               |
-                                      |  (Contains    |
-                                      |   1024 4-byte |
-                                      |   entries,    |
-                                      |   each        |
-                                      |   pointing to |
-                                      |   a Page      |
-                                      |   Table)      |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Table   |
-                                      |  (PT)         |
-                                      |               |
-                                      |  (Contains    |
-                                      |   1024 4-byte |
-                                      |   entries,    |
-                                      |   each        |
-                                      |   pointing to |
-                                      |   a 4 KiB     |
-                                      |   Physical    |
-                                      |   Page Frame) |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Table   |
-                                      |  Entry (PTE)  |
-                                      |               |
-                                      |  (Contains    |
-                                      |   Page Frame  |
-                                      |   Number,     |
-                                      |   Page Status,|
-                                      |   Access      |
-                                      |   Control,    |
-                                      |   Cache       |
-                                      |   Control)    |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Physical     |
-                                      |  Memory       |
-                                      |  (RAM)        |
-                                      |               |
-                                      |  (Divided into|
-                                      |   4 KiB Page  |
-                                      |   Frames)     |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Presence|
-                                      |  Bit (PPB)    |
-                                      |               |
-                                      |  (Indicates   |
-                                      |   whether the |
-                                      |   page is in  |
-                                      |   physical    |
-                                      |   memory)     |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Fault   |
-                                      |  (Trap to     |
-                                      |   Operating   |
-                                      |   System)     |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Fault   |
-                                      |  Handler      |
-                                      |               |
-                                      |  (Determines  |
-                                      |   cause of    |
-                                      |   page fault, |
-                                      |   selects     |
-                                      |   replacement |
-                                      |   page)       |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page         |
-                                      |  Replacement  |
-                                      |  Algorithm    |
-                                      |               |
-                                      |  (Selects     |
-                                      |   victim page |
-                                      |   to replace) |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Disk Storage |
-                                      |  (Hard Drive) |
-                                      |               |
-                                      |  (Stores      |
-                                      |   pages that  |
-                                      |   are not in  |
-                                      |   physical    |
-                                      |   memory)     |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Disk I/O     |
-                                      |  (Read/Write) |
-                                      |               |
-                                      |  (Reads page  |
-                                      |   from disk   |
-                                      |   storage into|
-                                      |   physical    |
-                                      |   memory, or  |
-                                      |   writes page |
-                                      |   from        |
-                                      |   physical    |
-                                      |   memory to   |
-                                      |   disk storage)|
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Page Table   |
-                                      |  Update       |
-                                      |               |
-                                      |  (Updates     |
-                                      |   page table  |
-                                      |   entry to    |
-                                      |   reflect new |
-                                      |   mapping of  |
-                                      |   virtual page|
-                                      |   to physical |
-                                      |   page)       |
-                                      +---------------+
-                                             |
-                                             |
-                                             v
-                                      +---------------+
-                                      |  Process      |
-                                      |  (Continued)  |
-                                      |               |
-                                      |  (Resumes     |
-                                      |   execution   |
-                                      |   with        |
-                                      |   updated     |
-                                      |   page table) |
-                                      +---------------+
+# Memory Management Diagram
+
+          Process                  Memory Management            Paging Directory                Page Table                Page Table Entry (PTE)         Physical Memory               Page Presence Bit (PPB)
+       (Virtual Address                Unit (MMU)                       (PD)                           (PT)                           (Contains)                       (RAM)                        (Indicates
+            Space)                (Translation of Virtual      (Contains 1024 4-byte          (Contains 1024 4-byte           Page Frame Number,                  (Divided into               whether the page
+                                      Address)                    entries, each                entries, each pointing        Page Status, Access                 4 KiB Page Frames)            is in physical
+                                                               pointing to a Page Table)         to a 4 KiB Physical           Control, Cache Control)                                             memory)
+                                                                                                     Page Frame)
+
+    +---------------+          +---------------+           +---------------+           +---------------+           +---------------+           +---------------+           +---------------+
+    |               |          |               |           |               |           |               |           |               |           |               |           |               |
+    |   Process     |   --->   |  Memory       |   --->    |  Paging       |   --->    |  Page Table   |   --->    |  Page Table   |   --->    |  Physical     |   --->    |  Page Presence|
+    |  (Virtual     |          |  Management   |           |  Directory    |           |  (PT)         |           |  Entry (PTE)  |           |  Memory       |           |  Bit (PPB)    |
+    |   Address     |          |  Unit (MMU)   |           |  (PD)         |           |               |           |               |           |  (RAM)        |           |               |
+    |   Space)      |          |  (Translation |           |  (Contains    |           |  (Contains    |           |  (Contains    |           |  (Divided into|           |  (Indicates   |
+    |               |          |   of Virtual  |           |   1024 4-byte |           |   1024 4-byte |           |   Page Frame  |           |   4 KiB Page  |           |   whether the |
+    |               |          |   Address)    |           |   entries,    |           |   entries,    |           |   Number,     |           |   Frames)     |           |   page is in  |
+    |               |          |               |           |   each pointing|          |   each pointing|           |   Page Status,|           |               |           |   physical    |
+    |               |          |               |           |   to a Page   |           |   to a 4 KiB  |           |   Access      |           |               |           |   memory)     |
+    +---------------+          +---------------+           |   table)      |           |   Physical    |           |   Control,    |           +---------------+           +---------------+
+                                                          |               |           |   Page Frame) |           |   Cache       |
+                                                          +---------------+           +---------------+           |   Control)    |
+                                                                                                                +---------------+
 
 ## Conclusion
 Paging is a critical concept in modern operating systems that helps manage memory efficiently by breaking logical memory into fixed-size pages and mapping them to physical frames.
