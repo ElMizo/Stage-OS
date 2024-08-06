@@ -84,7 +84,6 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
           _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
          |
         \_/
-
 +---------------+           +---------------+
 |  Page Table   |           |  Process      |
 |  Update       |           |  (Continued)  |
