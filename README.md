@@ -63,35 +63,35 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
                                                           +---------------+           +---------------+           |   Control)    |
                                                                                                                 +---------------+
 
-                                  Page Fault                    Page Fault                   Page Replacement               Disk Storage                      Disk I/O
-                                  (Trap to                      Handler                      Algorithm                      (Hard Drive)                      (Read/Write)
-                                  Operating                     (Determines                  (Selects victim                 (Stores pages                    (Reads page from
-                                  System)                       cause of page                page to replace)                that are not in                   disk storage into
-                                                                fault, selects                                                 physical memory)                 physical memory, or
-                                                                replacement page)                                                                               writes page from
-                                                                                                                                                               physical memory to
-                                                                                                                                                               disk storage)
+ Page Fault                     Page Fault                  Page Replacement             Disk Storage                 Disk I/O
+ (Trap to                       Handler                     Algorithm                    (Hard Drive)                (Read/Write)
+  Operating                     (Determines                 (Selects victim              (Stores pages               (Reads page from
+  System)                       cause of page                page to replace)            that are not in             disk storage into
+                                                             fault, selects                                          physical memory,physical memory, or
+                                                             replacement page)                                        writes page from
+                                                                                                                      physical memory to
+                                                                                                                      disk storage)
  
-    +---------------+          +---------------+           +---------------+           +---------------+           +---------------+           +---------------+
-    |               |          |               |           |               |           |               |           |               |           |               |
-    |  Page Fault   |   --->   |  Page Fault   |   --->    |  Page         |   --->    |  Disk         |   --->    |  Disk I/O     |           |               |
-    |  (Trap to     |          |  Handler      |           |  Replacement  |           |  Storage      |           |  (Read/Write) |           |               |
-    |   Operating   |          |  (Determines  |           |  Algorithm    |           |  (Hard Drive) |           |               |           |               |
-    |   System)     |          |   cause of    |           |  (Selects     |           |  (Stores      |           |  (Reads page  |           |               |
-    |               |          |   page fault, |           |   victim page |           |   pages that  |           |   from disk   |           |               |
-    |               |          |   selects     |           |   to replace) |           |   are not in  |           |   storage into|           |               |
-    |               |          |   replacement |           |               |           |   physical    |           |   physical    |           |               |
-    |               |          |   page)       |           |               |           |   memory)     |           |   memory, or  |           |               |
-    +---------------+          +---------------+           +---------------+           +---------------+           |   writes page |           +---------------+
-                                                                                                                |   from physical|
-                                                                                                                |   memory to    |
-                                                                                                                |   disk storage |
-                                                                                                                +---------------+
+    +---------------+          +---------------+           +---------------+           +---------------+           +----------------+           
+    |               |          |               |           |               |           |               |           |                |         
+    |  Page Fault   |   --->   |  Page Fault   |   --->    |  Page         |   --->    |  Disk         |   --->    |  Disk I/O      |       
+    |  (Trap to     |          |  Handler      |           |  Replacement  |           |  Storage      |           |  (Read/Write)  |       
+    |   Operating   |          |  (Determines  |           |  Algorithm    |           |  (Hard Drive) |           |                |       
+    |   System)     |          |   cause of    |           |  (Selects     |           |  (Stores      |           |  (Reads page   |        
+    |               |          |   page fault, |           |   victim page |           |   pages that  |           |   from disk    |         
+    |               |          |   selects     |           |   to replace) |           |   are not in  |           |   storage into |          
+    |               |          |   replacement |           |               |           |   physical    |           |   physical     |        
+    |               |          |   page)       |           |               |           |   memory)     |           |   memory, or   |       
+    +---------------+          +---------------+           +---------------+           +---------------+           |   writes page  |         
+                                                                                                                   |   from physical|
+                                                                                                                   |   memory to    |
+                                                                                                                   |   disk storage |
+                                                                                                                   +----------------+
 
-                                 Page Table Update               Process
-                                 (Updates page table entry       (Continued)
-                                 to reflect new mapping of       (Resumes execution with
-                                 virtual page to physical page)  updated page table)
+Page Table Update               Process
+(Updates page table entry       (Continued)
+to reflect new mapping of       (Resumes execution with
+virtual page to physical page)  updated page table)
 
     +---------------+           +---------------+
     |               |           |               |
