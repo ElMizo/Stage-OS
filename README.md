@@ -47,7 +47,7 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
                                                     |   to a Page    |          |   Physical     |
                                                     |   table)       |          |   Page Frame)  |
                                                     +----------------+          +----------------+
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
          |
         \_/
 +---------------+           +---------------+       +---------------+           +---------------+
@@ -68,13 +68,13 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
         \_/
 +---------------+           +---------------+       +---------------+           +----------------+
 |  Page fault   |           |  Page         |       |  Disk Storage |           |  Disk I/O      |
-|  Handler      |           |  Remplacement |       |  (Hard Drive) |           |  (Read/Write)  |
+|  Handler      |           |  Replacement  |       |  (Hard Drive) |           |  (Read/Write)  |
 |               |           |  Algorithm    |       |               |           |                |
 |  (Determines  |=========> |               |=====> |  (Stores      |==========>|  (Reads page)  |
 |   Cause of    |           |  (Selects     |       |   pages that  |           |   from disk    |   
 |   page fault  |           |   victim page |       |   are not in  |           |   storage into |
-|   selects     |           |   to repalce  |       |   physical    |           |   physical     |
-|   remplacement|           +---------------+       |   memory)     |           |   Memory, or   |
+|   selects     |           |   to replace  |       |   physical    |           |   physical     |
+|   replacement |           +---------------+       |   memory)     |           |   memory, or   |
 |   page)       |                                   +---------------+           |   writes page  |
 +---------------+                                                               |   from physical|
                                                                                 |   memory to    |
