@@ -35,53 +35,53 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
          +--------+--------+------+       +-------------+--------------+
 
 
-+---------------+          +---------------+        +----------------+          +----------------+
-|   Process     |          |  Memory       |        |  Paging        |          |  Page Table    |
-|   (Virtual    |          |  Management   |        |  Directory     |          |  (PT)          |
-|    Address    |          |  Unit (MMU)   |        |  (PD)          |          |                |
-|    Space)     |          |  (Translation |        |                |          |  (Contains     |
-+---------------+          |   of Virtual  |        |  (Contains     |          |   1024 4-byte  |
-                           |   Address)    |        |   1024 4-byte  |          |   entries,     |
-                           +---------------+        |   entries,     |          |   each pointing|
-                                                    |   each pointing|          |   to a 4 KiB   |
-                                                    |   to a Page    |          |   Physical     |
-                                                    |   table)       |          |   Page Frame)  |
-                                                    +----------------+          +----------------+
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
++---------------+          +---------------+        +----------------+        
+|   Process     |          |  Memory       |        |  Paging        |  
+|   (Virtual    |          |  Management   |        |  Directory     |  
+|    Address    |          |  Unit (MMU)   |        |  (PD)          |  
+|    Space)     |          |  (Translation |        |                |
++---------------+          |   of Virtual  |        |  (Contains     | 
+                           |   Address)    |        |   1024 4-byte  | 
+                           +---------------+        |   entries,     |  
+                                                    |   each pointing| 
+                                                    |   to a Page    |  
+                                                    |   table)       |
+                                                    +----------------+ 
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __
          |
         \_/
-+---------------+           +---------------+       +---------------+           +---------------+
-|  Page Table   |           |  Physical     |       |  Page Presence|           |  Page Fault   |
-|  Entry (PTE)  |           |  Memory       |       |  Bit (PPB)    |           |  (Trap to     |
-|               |           |  (RAM)        |       |               |           |   Operating   |
-|  (Contains    |=========> |               |=====> |  (Indicates   |==========>|   System)     |
-|   Page Frame  |           |  (Divided into|       |   whether the |           +---------------+   
-|   Number,     |           |   4 KiB Page  |       |   page is in  |                    |
-|   Page Status,|           |   Frames)     |       |   physical    |                    |
-|   Access      |           +---------------+       |   memory)     |                    |           
-|   Control,    |                                   +---------------+                    |           
-|   Cache       |                                                                        |           
-|   Control)    |                                                                        |           
-+---------------+                                                                        |
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
++---------------+           +---------------+       +---------------+  
+|  Page Table   |           |  Physical     |       |  Page Presence|  
+|  Entry (PTE)  |           |  Memory       |       |  Bit (PPB)    | 
+|               |           |  (RAM)        |       |               | 
+|  (Contains    |=========> |               |=====> |  (Indicates   |
+|   Page Frame  |           |  (Divided into|       |   whether the |   
+|   Number,     |           |   4 KiB Page  |       |   page is in  |
+|   Page Status,|           |   Frames)     |       |   physical    |
+|   Access      |           +---------------+       |   memory)     |          
+|   Control,    |                                   +---------------+          
+|   Cache       |                                                              
+|   Control)    |                                                             
++---------------+                                                  
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ 
          |
         \_/
-+---------------+           +---------------+       +---------------+           +----------------+
-|  Page fault   |           |  Page         |       |  Disk Storage |           |  Disk I/O      |
-|  Handler      |           |  Replacement  |       |  (Hard Drive) |           |  (Read/Write)  |
-|               |           |  Algorithm    |       |               |           |                |
-|  (Determines  |=========> |               |=====> |  (Stores      |==========>|  (Reads page)  |
-|   Cause of    |           |  (Selects     |       |   pages that  |           |   from disk    |   
-|   page fault  |           |   victim page |       |   are not in  |           |   storage into |
-|   selects     |           |   to replace  |       |   physical    |           |   physical     |
-|   replacement |           +---------------+       |   memory)     |           |   memory, or   |
-|   page)       |                                   +---------------+           |   writes page  |
-+---------------+                                                               |   from physical|
-                                                                                |   memory to    |
-                                                                                |   disk storage |     
-                                                                                +----------------+
-                                                                                         |
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ |
++---------------+           +---------------+       +---------------+ 
+|  Page fault   |           |  Page         |       |  Disk Storage |
+|  Handler      |           |  Replacement  |       |  (Hard Drive) |
+|               |           |  Algorithm    |       |               |
+|  (Determines  |=========> |               |=====> |  (Stores      |
+|   Cause of    |           |  (Selects     |       |   pages that  | 
+|   page fault  |           |   victim page |       |   are not in  |
+|   selects     |           |   to replace  |       |   physical    |
+|   replacement |           +---------------+       |   memory)     |
+|   page)       |                                   +---------------+ 
++---------------+                                                     
+                                                                      
+                                                                         
+                                                                      
+                                                                     
+          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _
          |
         \_/
 
