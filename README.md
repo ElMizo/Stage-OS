@@ -47,9 +47,11 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
                                                     |   to a Page    |  
                                                     |   table)       |
                                                     +----------------+ 
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __
-         |
-        \_/
+
+
+
+
+
 +---------------+           +---------------+       +---------------+  
 |  Page Table   |           |  Physical     |       |  Page Presence|  
 |  Entry (PTE)  |           |  Memory       |       |  Bit (PPB)    | 
@@ -63,9 +65,10 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 |   Cache       |                                                              
 |   Control)    |                                                             
 +---------------+                                                  
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ 
-         |
-        \_/
+
+
+
+
 +---------------+           +---------------+       +---------------+ 
 |  Page fault   |           |  Page         |       |  Disk Storage |
 |  Handler      |           |  Replacement  |       |  (Hard Drive) |
@@ -77,13 +80,9 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
 |   replacement |           +---------------+       |   memory)     |
 |   page)       |                                   +---------------+ 
 +---------------+                                                     
-                                                                      
-                                                                         
-                                                                      
-                                                                     
-          _ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _ __ _
-         |
-        \_/
+
+
+
 
 +---------------+           +---------------+
 |  Page Table   |           |  Process      |
