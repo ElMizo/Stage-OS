@@ -88,10 +88,10 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
                                                                                                                    |   disk storage |
                                                                                                                    +----------------+
 
-Page Table Update               Process
-(Updates page table entry       (Continued)
-to reflect new mapping of       (Resumes execution with
-virtual page to physical page)  updated page table)
+   Page Table Update               Process
+   (Updates page table entry       (Continued)
+   to reflect new mapping of       (Resumes execution with
+   virtual page to physical page)  updated page table)
 
     +---------------+           +---------------+
     |               |           |               |
