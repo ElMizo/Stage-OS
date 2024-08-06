@@ -28,7 +28,7 @@ _start2:
 
 
 printingcredits:
-    movw $credits, %si   # Print credits
+    movw $credits_inpt, %si   # Print credits
     call bios_putstring
 
 done:
@@ -123,6 +123,8 @@ bios_putstring:              # Routine to print an entire string
     call bios_putchar
     incw %si
     jmp bios_putstring
+
+	
 bios_putstring_done:
     ret
 
@@ -164,8 +166,8 @@ partition_start_lba:
     .long 0
 partition_length:
     .long 0
-credits:
-    .asciz "This work was done by Hamza Aarab, Hassan Labyad, Khalid Elkoussami, Abdelaali Chattaoui, Anas Azouane"
+credits_inpt:
+    .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid Elkoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
 
 .org 510
 bootflag:
