@@ -56,12 +56,12 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
     |   Space)      |          |  (Translation |           |  (Contains    |           |  (Contains    |           |  (Contains    |           |  (Divided into|           |  (Indicates   |
     |               |          |   of Virtual  |           |   1024 4-byte |           |   1024 4-byte |           |   Page Frame  |           |   4 KiB Page  |           |   whether the |
     |               |          |   Address)    |           |   entries,    |           |   entries,    |           |   Number,     |           |   Frames)     |           |   page is in  |
-    |               |          |               |           |   each pointing|          |   each pointing|           |   Page Status,|           |               |           |   physical    |
+    |               |          |               |           |   each pointing|          |   each pointing|          |   Page Status,|           |               |           |   physical    |
     |               |          |               |           |   to a Page   |           |   to a 4 KiB  |           |   Access      |           |               |           |   memory)     |
     +---------------+          +---------------+           |   table)      |           |   Physical    |           |   Control,    |           +---------------+           +---------------+
-                                                          |               |           |   Page Frame) |           |   Cache       |
-                                                          +---------------+           +---------------+           |   Control)    |
-                                                                                                                +---------------+
+                                                           |               |           |   Page Frame) |           |   Cache       |
+                                                           +---------------+           +---------------+           |   Control)    |
+                                                                                                                   +---------------+
 
  Page Fault                     Page Fault                  Page Replacement             Disk Storage                 Disk I/O
  (Trap to                       Handler                     Algorithm                    (Hard Drive)                (Read/Write)
