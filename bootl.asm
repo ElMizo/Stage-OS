@@ -1,7 +1,7 @@
 [org 0x7c00]
 KERNEL_LOCATION equ 0x1000
 credits:
-        db "this work was done by Hamza Aarab, Khalid Elkoussami, Hassan Labyad, Abdelaali Chattaoui, Anas Azouane", 0
+        db "this work was done by Hamza Aarab, Khalid Elkoussami, Hassan Labyad, Abdelali Chattaoui, Anas Azouane", 0
 
 
 mov [BOOT_DISK], dl  ;dl conventionally contains the disk number during booting
