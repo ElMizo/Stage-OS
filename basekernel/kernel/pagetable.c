@@ -4,54 +4,81 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#include "pagetable.h"   
-#include "page.h"        
-#include "string.h"      
-#include "kernelcore.h"  
+#include "pagetable.h"
+#include "page.h"
+#include "string.h"
+#include "kernelcore.h"
+#include "log.h"
 
-#define ENTRIES_PER_TABLE (PAGE_SIZE / 4)  
+#define ENTRIES_PER_TABLE (PAGE_SIZE / 4)
 
 struct pageentry {
-    unsigned present:1;      
-    unsigned readwrite:1;    
-    unsigned user:1;         
-    unsigned writethrough:1; 
-    unsigned nocache:1;      
-    unsigned accessed:1;     
-    unsigned dirty:1;        
-    unsigned pagesize:1;     
-    unsigned globalpage:1;   
-    unsigned avail:3;        
-    unsigned addr:20;        
+    unsigned present:1;
+    unsigned readwrite:1;
+    unsigned user:1;
+    unsigned writethrough:1;
+    unsigned nocache:1;
+    unsigned accessed:1;
+    unsigned dirty:1;
+    unsigned pagesize:1;
+    unsigned globalpage:1;
+    unsigned avail:3;
+    unsigned addr:20;
 };
-
 
 struct pagetable {
     struct pageentry entry[ENTRIES_PER_TABLE];
 };
 
+static int clock_front = 0;
+static int clock_back = 0;
+static int clock_bits[ENTRIES_PER_TABLE]; 
 
 struct pagetable *pagetable_create() {
-    return page_alloc(1);
+    struct pagetable *pt = (struct pagetable *)page_alloc(1);
+    if (!pt) {
+        log_error("Failed to allocate memory for page table.");
+        return NULL;
+    }
+    memset(pt, 0, sizeof(struct pagetable));
+    return pt;
 }
 
-
 void pagetable_init(struct pagetable *p) {
+    if (!p) return;
+
     unsigned i, Max, End;
     Max = total_memory * 1024 * 1024;
 
     for (i = 0; i < Max; i += PAGE_SIZE) {
-        pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
+        if (!pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE)) {
+            log_error("Failed to map page in pagetable_init.");
+        }
     }
 
     End = (unsigned)video_buffer + video_xres * video_yres * 3;
     for (i = (unsigned)video_buffer; i <= End; i += PAGE_SIZE) {
-        pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE);
+        if (!pagetable_map(p, i, i, PAGE_FLAG_KERNEL | PAGE_FLAG_READWRITE)) {
+            log_error("Failed to map video buffer in pagetable_init.");
+        }
     }
 }
 
+void pagetable_init_clock() {
+    int i;
+    for (i = 0; i < ENTRIES_PER_TABLE; i++) {
+        clock_bits[i] = 0;
+    }
+    clock_front = 0;
+    clock_back = 0;
+}
 
 int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr, int *flags) {
+    if (!p || !paddr) {
+        log_error("Invalid parameters in pagetable_getmap.");
+        return 0;
+    }
+
     struct pagetable *q;
     struct pageentry *e;
     unsigned p_direc_indx = vaddr >> 22;
@@ -76,23 +103,38 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr, int *
     return 1;
 }
 
-
 int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags) {
+    if (!p) {
+        log_error("Invalid pagetable in pagetable_map.");
+        return 0;
+    }
+
     struct pagetable *q;
     struct pageentry *e;
     unsigned p_direc_indx = vaddr >> 22;
     unsigned p_tble_indx = (vaddr >> 12) & 0x3ff;
 
     if (flags & PAGE_FLAG_ALLOC) {
-        paddr = (unsigned)page_alloc(flags & PAGE_FLAG_CLEAR);
-        if (!paddr) return 0;
+        int victim_page = clock_paging_algorithm();
+        if (victim_page != -1) {
+            pagetable_unmap(p, victim_page);
+            paddr = (unsigned)page_alloc(flags & PAGE_FLAG_CLEAR);
+            if (!paddr) {
+                log_error("Failed to allocate page in pagetable_map.");
+                return 0;
+            }
+        }
     }
 
     e = &p->entry[p_direc_indx];
 
     if (!e->present) {
         q = pagetable_create();
-        if (!q) return 0;
+        if (!q) {
+            log_error("Failed to create page table in pagetable_map.");
+            if (flags & PAGE_FLAG_ALLOC) page_free((void *)paddr);
+            return 0;
+        }
         e->present = 1;
         e->readwrite = 1;
         e->user = (flags & PAGE_FLAG_KERNEL) ? 0 : 1;
@@ -124,8 +166,12 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags
     return 1;
 }
 
-
 void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
+    if (!p) {
+        log_error("Invalid pagetable in pagetable_unmap.");
+        return;
+    }
+
     struct pagetable *q;
     struct pageentry *e;
     unsigned p_direc_indx = vaddr >> 22;
@@ -136,50 +182,71 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
         q = (struct pagetable *)(e->addr << 12);
         e = &q->entry[p_tble_indx];
         e->present = 0;
+        clock_bits[vaddr >> 12] = 0;  
     }
 }
 
+int clock_paging_algorithm() {
+    int i, j;
+    int victim_page = -1;
 
-void pagetable_delete(struct pagetable *p) {
-    unsigned i, j;
-    struct pageentry *e;
-    struct pagetable *q;
-
-    for (i = 0; i < ENTRIES_PER_TABLE; i++) {
-        e = &p->entry[i];
-        if (e->present) {
-            q = (struct pagetable *)(e->addr << 12);
-            for (j = 0; j < ENTRIES_PER_TABLE; j++) {
-                e = &q->entry[j];
-                if (e->present && e->avail) {
-                    void *paddr = (void *)(e->addr << 12);
-                    page_free(paddr);
-                }
-            }
-            page_free(q);
+    for (i = clock_front; i < ENTRIES_PER_TABLE; i++) {
+        if (clock_bits[i] == 1) {
+            clock_bits[i] = 0;
+        } else {
+            victim_page = i;
+            break;
         }
     }
 
-    page_free(p);
+    if (victim_page == -1) {
+        for (i = 0; i < clock_front; i++) {
+            if (clock_bits[i] == 1) {
+                clock_bits[i] = 0;
+            } else {
+                victim_page = i;
+                break;
+            }
+        }
+    }
+
+    if (victim_page == -1) {
+        victim_page = 0;
+    }
+
+    clock_front = (clock_front + 1) % ENTRIES_PER_TABLE;
+    clock_back = (clock_back + 1) % ENTRIES_PER_TABLE;
+
+    return victim_page;
 }
 
-
 void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags) {
+    if (!p) {
+        log_error("Invalid pagetable in pagetable_alloc.");
+        return;
+    }
+
     unsigned npages = (length + PAGE_SIZE - 1) / PAGE_SIZE;
     vaddr &= 0xfffff000;
 
     while (npages > 0) {
         unsigned paddr;
         if (!pagetable_getmap(p, vaddr, &paddr, 0)) {
-            pagetable_map(p, vaddr, 0, flags | PAGE_FLAG_ALLOC);
+            if (!pagetable_map(p, vaddr, 0, flags | PAGE_FLAG_ALLOC)) {
+                log_error("Failed to map page in pagetable_alloc.");
+            }
         }
         vaddr += PAGE_SIZE;
         npages--;
     }
 }
 
-
 void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length) {
+    if (!p) {
+        log_error("Invalid pagetable in pagetable_free.");
+        return;
+    }
+
     unsigned npages = (length + PAGE_SIZE - 1) / PAGE_SIZE;
     vaddr &= 0xfffff000;
 
@@ -195,23 +262,18 @@ void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length) {
     }
 }
 
-
 struct pagetable *pagetable_load(struct pagetable *p) {
     struct pagetable *oldp;
-    asm("mov %%cr3, %0" : "=r"(oldp)); 
-    asm("mov %0, %%cr3" ::"r"(p));     
+    asm("mov %%cr3, %0" : "=r"(oldp));
+    asm("mov %0, %%cr3" :: "r"(p));
     return oldp;
 }
 
-
-void pagetable_refresh() {
-    asm("mov %cr3, %eax");
-    asm("mov %eax, %cr3");
+void pagetable_unload(struct pagetable *p) {
+    asm("mov %0, %%cr3" :: "r"(p));
 }
 
-
-void pagetable_enable() {
-    asm("movl %cr0, %eax");
-    asm("orl $0x80000000, %eax"); 
-    asm("movl %eax, %cr0");
+void pagetable_switch(struct pagetable *p) {
+    struct pagetable *oldp = pagetable_load(p);
+    pagetable_unload(oldp);
 }
