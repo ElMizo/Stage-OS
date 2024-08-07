@@ -40,14 +40,20 @@ Page 1 [reference bit: 1]
 
 This way, the algorithm ensures that pages that have been accessed recently are less likely to be replaced, approximating an LRU strategy.
 
-# Stage-OS
+# log_error
 
-## Basekernel
-Made by : Douglas Thain (dthain)
+## Overview
 
-Modified by : Khalid ElKoussami, Hamza Aarab, Abdelali Chattaoui, Anas Azouane, ElHassan Labyad.
+The `log_error` function is used to log error messages in the `pagetable.c` code. It helps with debugging by recording issues that occur during the execution of the code.
 
+## Purpose
 
+The primary purpose of the log_error function is to record error messages whenever an error condition is encountered in the code. This helps in debugging and monitoring the system.
+
+## Implementation method 
+
+### Creation of log files
+- We developed C and header files that include a function for invoking the 'printk' function, a fundamental logging mechanism in the Linux kernel. This function allows developers to print messages to log files with varying levels of importance. It accepts three arguments: an integer representing the log level (e.g., LOG_LEVEL_ERR), a string format specifier (fmt), and a variable number of arguments to populate the format specifier. The function first determines the appropriate log level string based on the level argument. It then uses the vsprintf function to format the string with the provided format specifier and arguments. Finally, the formatted string, including the log level string, is printed to the log file.
 # Memory management
 ## Paging
 Paging is a memory management scheme that eliminates the need for contiguous allocation of physical memory. This allows the physical address space of a process to be noncontiguous, making efficient use of available memory.
