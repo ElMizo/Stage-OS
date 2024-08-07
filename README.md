@@ -29,9 +29,9 @@ The Clock Paging Algorithm is a page replacement strategy used in operating syst
 Imagine you have four pages in memory, and their reference bits are as follows (with the clock hand pointing to page 1):
 
 Clock Hand -->
-Page 1 [reference bit: 1]
-Page 2 [reference bit: 1]
-Page 3 [reference bit: 0]
+Page 1 [reference bit: 1]                                                                                                                                                             
+Page 2 [reference bit: 1]                                                                                                                                                             
+Page 3 [reference bit: 0]                                                                                                                                                             
 Page 4 [reference bit: 0]
 
 - If a new page needs to be loaded, the clock hand will check Page 1. Since its reference bit is 1, it sets the bit to 0 and moves to Page 2.
