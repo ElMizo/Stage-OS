@@ -7,7 +7,7 @@
  * @file pagetable.h 
  * @brief memory management module for a kernel, by implementing paging
  *
-  * Paging is a mechanism that accommodates memory protection and logical
+ * Paging is a mechanism that accommodates memory protection and logical
  * addressing. Each running process gets its own private address space,
  * enhancing security and stability. Pages, Page Tables, and Page Directories
  * are typically 4 KB in size and must be aligned to 4 KB boundaries.
@@ -40,8 +40,7 @@
 #define PAGE_FLAG_CLEAR       8
 
 /*************************************************************************
-                       Breakdown of a Virtual Address
-**************************************************************************
+* Breakdown of a Virtual Address
 * A 32-bit virtual address can be split into parts for indexing into a 
 * two-level page table structure.
 *
@@ -54,9 +53,6 @@
 * |   10 bits   |   10 bits   |   12 bits   |
 * |  Directory  |    Table    |    Offset   |
 *
-* Shifting right by 12 bits removes the page offset, isolating the indices 
-* needed for the page tables.
-* Shifting left by 12 bits converts a page frame number to a physical address.
 ***************************************************************************/
 
 
@@ -183,5 +179,47 @@ void pagetable_enable();
  * state of the system.
  */
 void pagetable_refresh();
+
+/**
+ * @brief Switches to a new page table
+ *
+ * The pagetable_switch() function loads a new page table, unloading the old
+ * page table in the process.
+ *
+ * @param p is a pointer to the new page table
+ */
+void pagetable_switch(struct pagetable *p);
+
+/**
+ * @brief Implements the clock paging algorithm to select a victim page
+ *
+ * The clock_paging_algorithm() function selects a victim page to be replaced
+ * based on the clock paging algorithm. It scans the clock bits array to find
+ * the first page with a clock bit of 0.
+ *
+ * @return the index of the victim page to be replaced
+ */
+int clock_paging_algorithm();
+
+/**
+ * @brief Initializes the clock paging algorithm data structures
+ *
+ * The pagetable_init_clock() function initializes the clock bits array and
+ * sets the clock front and back pointers to zero.
+ */
+void pagetable_init_clock();
+
+/**
+ * @brief Unloads a page table
+ *
+ * The pagetable_unload() function unloads a page table, preparing it for use
+ * by the system next time.
+ *
+ * @param p is a pointer to the page table to be unloaded
+ *
+ * @return a pointer to the loaded page table
+ */
+void pagetable_unload(struct pagetable *p);
+
 
 #endif
