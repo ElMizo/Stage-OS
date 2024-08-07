@@ -1,3 +1,44 @@
+# Clock Paging Algorithm
+
+The Clock Paging Algorithm is a page replacement strategy used in operating systems to manage the pages in memory. It is an approximation of the Least Recently Used (LRU) algorithm, designed to be more efficient in terms of time complexity.
+
+## How It Works
+
+1. **Circular List (Clock)**: Imagine the pages in memory are arranged in a circular list, much like the numbers on a clock. Each page has an associated "reference bit" that indicates whether the page has been accessed recently.
+
+2. **Clock Hand**: There is a "clock hand" that points to one of the pages in this circular list. This hand moves around the circle as pages are accessed and replaced.
+
+3. **Reference Bit**:
+   - When a page is accessed, its reference bit is set to 1.
+   - The clock hand checks the reference bit of the page it points to:
+     - If the reference bit is 0, the page is not recently used, and it can be replaced.
+     - If the reference bit is 1, it means the page was recently used. The algorithm sets the reference bit to 0 and moves the clock hand to the next page.
+
+4. **Page Replacement**:
+   - The algorithm continues to move the clock hand, clearing reference bits of pages that have been accessed recently.
+   - It stops when it finds a page with a reference bit of 0, which means the page hasn't been accessed recently and can be replaced with a new page.
+
+## Summary
+
+- **Efficient**: The Clock Paging Algorithm is efficient because it doesn't require a complete traversal of all pages to find a replacement.
+- **Approximation of LRU**: It approximates the Least Recently Used (LRU) algorithm by using reference bits to track recent usage.
+- **Practical**: The algorithm is practical and widely used in operating systems due to its balance between performance and simplicity.
+
+## Example Scenario
+
+Imagine you have four pages in memory, and their reference bits are as follows (with the clock hand pointing to page 1):
+
+Clock Hand --> Page 1 [refrence bit:1]
+               Page 2 [refrence bit:1]
+               Page 3 [refrence bit:0]
+               Page 4 [refrence bit:0]
+
+- If a new page needs to be loaded, the clock hand will check Page 1. Since its reference bit is 1, it sets the bit to 0 and moves to Page 2.
+- Page 2 also has a reference bit of 1, so the algorithm sets it to 0 and moves to Page 3.
+- Page 3 has a reference bit of 0, so it selects this page for replacement.
+
+This way, the algorithm ensures that pages that have been accessed recently are less likely to be replaced, approximating an LRU strategy.
+
 # Stage-OS
 
 ## Basekernel
