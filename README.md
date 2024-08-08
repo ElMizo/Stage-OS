@@ -1,6 +1,6 @@
 # What's different
 
-In the memory management section of our OS, our primary goal is to prioritize code clarity and ease of understanding while maintaining full functionality in memory management. We aim to make the code seamless and straightforward for any reader. To achieve this, we focused on enhancing the page.c and pagetable.c files through targeted improvements. Specifically, we implemented the Clock Paging Algorithm in the page replacement system to efficiently manage memory swaps. Additionally, we added a fault handler that provides feedback on the success of operations like page allocation and deallocation. Each file now includes detailed headers that explain every aspect of the code.
+In the memory management section of our OS, our primary goal is to prioritize code clarity and ease of understanding while maintaining full functionality in memory management. We aim to make the code seamless and straightforward for any reader. To achieve this, we focused on enhancing `the page.c` and `pagetable.c` files through targeted improvements. Specifically, we implemented the Clock Paging Algorithm in the page replacement system to efficiently manage memory swaps. Additionally, we added a fault handler that provides feedback on the success of operations like page allocation and deallocation. Each file now includes detailed headers that explain every aspect of the code.
 
 # Clock Paging Algorithm
 
