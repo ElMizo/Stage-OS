@@ -25,6 +25,9 @@ The Clock Paging Algorithm is a page replacement strategy used in operating syst
 4. **Page Replacement**:
    - The algorithm continues to move the clock hand, clearing reference bits of pages that have been accessed recently.
    - It stops when it finds a page with a reference bit of 0, which means the page hasn't been accessed recently and can be replaced with a new page.
+<p align="center">
+  <img src="image_2024-08-08_203651431.png">
+</p>
 
 ## Summary
 
