@@ -40,7 +40,6 @@ struct pagetable *pagetable_create() {
         log_error("Failed to allocate memory for page table.");
         return NULL;
     }
-    memset(pt, 0, sizeof(struct pagetable));
     return pt;
 }
 
