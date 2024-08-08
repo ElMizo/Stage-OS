@@ -67,6 +67,10 @@ The primary purpose of the log_error function is to record error messages whenev
 - We developed C and header files that include a function for invoking the 'printk' function, a fundamental logging mechanism in the Linux kernel. This function allows developers to print messages to log files with varying levels of importance. It accepts three arguments: an integer representing the log level (e.g., LOG_LEVEL_ERR), a string format specifier (fmt), and a variable number of arguments to populate the format specifier. The function first determines the appropriate log level string based on the level argument. It then uses the vsprintf function to format the string with the provided format specifier and arguments. Finally, the formatted string, including the log level string, is printed to the log file.
 # Memory management
 ## Paging
+<p align="center">
+  <img src="Paging_Structure.gif">
+</p>
+
 Paging is a memory management scheme that eliminates the need for contiguous allocation of physical memory. This allows the physical address space of a process to be noncontiguous, making efficient use of available memory.
 ### Paging in simple terms:
 Paging breaks down memory into fixed-size blocks called "pages" for the process's logical memory, and into blocks of the same size called "frames" for the physical memory. When a process is to be executed, its pages are loaded into any available memory frames from the disk.
