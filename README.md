@@ -1,3 +1,10 @@
+# What's different
+---
+
+In the memory management section of our OS, our primary objective is to prioritize code clarity and ease of understanding while preserving full functionality in managing memory. We aim for the code to be seamless and straightforward for anyone reading it. To achieve this, we focused on refining the `page.c` file through targeted enhancements.
+
+---
+
 # Clock Paging Algorithm
 
 The Clock Paging Algorithm is a page replacement strategy used in operating systems to manage the pages in memory. It is an approximation of the Least Recently Used (LRU) algorithm, designed to be more efficient in terms of time complexity.
