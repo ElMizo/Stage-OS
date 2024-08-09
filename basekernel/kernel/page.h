@@ -47,7 +47,7 @@ void *page_alloc(bool zeroit); //allocates a new page of memory
  * 
  ********************************************************************************************/
 
-void  page_free(void *addr); //frees a previously allocated page of memory
+void  page_free(uint32_t *addr); //frees a previously allocated page of memory
 /********************************************************************************************
  * @brief frees a previously allocated page of memory
  *

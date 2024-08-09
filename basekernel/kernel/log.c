@@ -1,9 +1,10 @@
 #include "log.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include "kernel/types.h"
+#include "string.h"
 
 #define LOG_LEVEL_ERR 3
 
+/*
 void printk(int level, const char *fmt, ...) {
     va_list args;
     char buffer[1024];
@@ -19,8 +20,8 @@ void printk(int level, const char *fmt, ...) {
     va_end(args);
 
     printf("[%s] %s\n", level_str, buffer);
-}
+}*/
 
 void log_error(const char *message) {
-    printk(LOG_LEVEL_ERR, "%s", message);
+    printf(LOG_LEVEL_ERR, "%s", message);
 }

@@ -45,7 +45,7 @@ void *page_alloc(bool zeroit) {
         uint32_t page_mask = 1 << (page_idx % 8);
         if (page_map[page_idx / 8] & page_mask) {
             page_map[page_idx / 8] &= ~page_mask;
-            void *page_addr = (page_idx << PAGE_SIZE_SHIFT) + MAIN_MEMORY_START;
+            uint32_t *page_addr =   (page_idx << 12) + MAIN_MEMORY_START;
             if (zeroit) {
                 memset(page_addr, 0, PAGE_SIZE);
             }
@@ -60,8 +60,8 @@ void *page_alloc(bool zeroit) {
     return 0;
 }
 
-void page_free(void *pageaddr) {
-    uint32_t page_idx = (pageaddr - MAIN_MEMORY_START) >> PAGE_SIZE_SHIFT;
+void page_free(uint32_t *pageaddr) {
+    uint32_t page_idx = *(pageaddr - MAIN_MEMORY_START) >> (uint32_t) 12;
     uint32_t page_mask = 1 << (page_idx % 8);
     page_map[page_idx / 8] |= page_mask;
     free_pages++;

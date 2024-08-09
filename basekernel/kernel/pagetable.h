@@ -144,15 +144,6 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int f
 void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
 
 /**
- * @brief Deletes a page table
- *
- * The pagetable_delete() function deletes a page table, freeing any
- * associated resources and updating the internal structures.
- *
- * @param p is a pointer to the page table to be deleted
- */
-void pagetable_delete(struct pagetable *p);
-/**
  * @brief Loads a page table
  *
  * The pagetable_load() function loads a page table, preparing it for use
@@ -170,15 +161,6 @@ struct pagetable *pagetable_load(struct pagetable *p);
  * use the page table for memory management.
  */
 void pagetable_enable();
-
-/**
- * @brief Refreshes the page table
- *
- * The pagetable_refresh() function refreshes the page table, updating its
- * internal structures and ensuring that it is consistent with the current
- * state of the system.
- */
-void pagetable_refresh();
 
 /**
  * @brief Switches to a new page table

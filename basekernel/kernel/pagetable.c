@@ -8,7 +8,7 @@ See the file LICENSE for details.
 #include "page.h"
 #include "string.h"
 #include "kernelcore.h"
-#include "log.h"
+#include "log.c"
 
 #define ENTRIES_PER_TABLE (PAGE_SIZE / 4)
 
@@ -38,7 +38,7 @@ struct pagetable *pagetable_create() {
     struct pagetable *pt = (struct pagetable *)page_alloc(1);
     if (!pt) {
         log_error("Failed to allocate memory for page table.");
-        return NULL;
+        return 0;
     }
     return pt;
 }
