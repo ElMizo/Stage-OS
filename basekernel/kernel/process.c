@@ -4,119 +4,136 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
-#include "process.h"
-#include "kobject.h"
-#include "page.h"
-#include "string.h"
-#include "list.h"
-#include "x86.h"
-#include "interrupt.h"
-#include "memorylayout.h"
-#include "kmalloc.h"
-#include "kernel/types.h"
-#include "kernelcore.h"
-#include "main.h"
-#include "keyboard.h"
-#include "clock.h"
+#include "process.h"           // Include process management definitions
+#include "kobject.h"           // Include kernel object definitions
+#include "page.h"              // Include paging and memory management definitions
+#include "string.h"            // Include string manipulation functions
+#include "list.h"              // Include linked list definitions
+#include "x86.h"               // Include x86 architecture specific definitions
+#include "interrupt.h"         // Include interrupt handling definitions
+#include "memorylayout.h"      // Include memory layout definitions
+#include "kmalloc.h"           // Include kernel memory allocation definitions
+#include "kernel/types.h"      // Include kernel type definitions
+#include "kernelcore.h"        // Include core kernel functions
+#include "main.h"              // Include main kernel entry definitions
+#include "keyboard.h"          // Include keyboard handling definitions
+#include "clock.h"             // Include clock and timing definitions
 
-struct process *current = 0;
-struct list ready_list = { 0, 0 };
-struct list grave_list = { 0, 0 };
-struct list grave_watcher_list = { 0, 0 };	// parent processes are put here to wait for their children
-struct process *process_table[PROCESS_MAX_PID] = { 0 };
+struct process *current = 0;                     // Pointer to the current process
+struct list ready_list = { 0, 0 };               // List of ready processes
+struct list grave_list = { 0, 0 };               // List of terminated processes
+struct list grave_watcher_list = { 0, 0 };       // List of parent processes waiting for children
+struct process *process_table[PROCESS_MAX_PID] = { 0 };  // Table of all processes
 
+/*
+ * Initialize the process system by creating the first process,
+ * loading its page table, enabling paging, and setting its state to ready.
+ */
 void process_init()
 {
-	current = process_create();
+    current = process_create();                  // Create the first process
 
-	pagetable_load(current->pagetable);
-	pagetable_enable();
+    pagetable_load(current->pagetable);          // Load the process's page table
+    pagetable_enable();                          // Enable paging
 
-	current->state = PROCESS_STATE_READY;
+    current->state = PROCESS_STATE_READY;        // Set the process state to ready
 
-	current->waiting_for_child_pid = 0;
-}
-
-void process_kstack_reset(struct process *p, unsigned entry_point)
-{
-	struct x86_stack *s;
-
-	p->state = PROCESS_STATE_CRADLE;
-
-	s = (struct x86_stack *) p->kstack_ptr;
-
-	s->regs2.ebp = (uint32_t) (p->kstack_ptr + 28);
-	s->old_ebp = (uint32_t) (p->kstack_ptr + 32);
-	s->old_eip = (unsigned) intr_return;
-	s->fs = 0;
-	s->gs = 0;
-	s->es = X86_SEGMENT_USER_DATA;
-	s->ds = X86_SEGMENT_USER_DATA;
-	s->cs = X86_SEGMENT_USER_CODE;
-	s->eip = entry_point;
-	s->eflags.interrupt = 1;
-	s->eflags.iopl = 3;
-	s->esp = PROCESS_STACK_INIT;
-	s->ss = X86_SEGMENT_USER_DATA;
-}
-
-void process_kstack_copy(struct process *parent, struct process *child)
-{
-	child->kstack_top = child->kstack + PAGE_SIZE - 8;
-	child->kstack_ptr = child->kstack_top - sizeof(struct x86_stack);
-
-	struct x86_stack *child_regs = (struct x86_stack *) child->kstack_ptr;
-	struct x86_stack *parent_regs = (struct x86_stack *) (parent->kstack_top - sizeof(struct x86_stack));
-
-	*child_regs = *parent_regs;
-
-	child_regs->regs2.ebp = (uint32_t) (child->kstack_ptr + 28);
-	child_regs->old_ebp = (uint32_t) (child->kstack_ptr + 32);
-	child_regs->old_eip = (unsigned) intr_return;
-	child_regs->regs1.eax = 0;
+    current->waiting_for_child_pid = 0;          // Initialize waiting_for_child_pid to 0
 }
 
 /*
-Valid pids start at 1 and go to PROCESS_MAX_PID.
-To avoid confusion, keep picking increasing
-pids until it is necessary to wrap around.
-"last" is the most recently selected pid.
-*/
-
-static int process_allocate_pid()
+ * Reset the kernel stack for a process. This function sets up the initial
+ * values of the stack for a process, including the instruction pointer,
+ * stack pointer, and segment registers.
+ */
+void process_kstack_reset(struct process *p, unsigned entry_point)
 {
-	static int last = 0;
+    struct x86_stack *s;
 
-	int i;
+    p->state = PROCESS_STATE_CRADLE;             // Set the process state to cradle
 
-	for(i = last + 1; i < PROCESS_MAX_PID; i++) {
-		if(!process_table[i]) {
-			last = i;
-			return i;
-		}
-	}
+    s = (struct x86_stack *) p->kstack_ptr;      // Get the stack pointer
 
-	for(i = 1; i < last; i++) {
-		if(!process_table[i]) {
-			last = i;
-			return i;
-		}
-	}
-
-	return 0;
+    s->regs2.ebp = (uint32_t) (p->kstack_ptr + 28);  // Set the base pointer
+    s->old_ebp = (uint32_t) (p->kstack_ptr + 32);    // Set the old base pointer
+    s->old_eip = (unsigned) intr_return;             // Set the old instruction pointer
+    s->fs = 0;                                      // Set fs segment
+    s->gs = 0;                                      // Set gs segment
+    s->es = X86_SEGMENT_USER_DATA;                  // Set es segment
+    s->ds = X86_SEGMENT_USER_DATA;                  // Set ds segment
+    s->cs = X86_SEGMENT_USER_CODE;                  // Set cs segment
+    s->eip = entry_point;                           // Set the instruction pointer to the entry point
+    s->eflags.interrupt = 1;                        // Enable interrupts
+    s->eflags.iopl = 3;                             // Set I/O privilege level
+    s->esp = PROCESS_STACK_INIT;                    // Initialize stack pointer
+    s->ss = X86_SEGMENT_USER_DATA;                  // Set stack segment
 }
 
+/*
+ * Copy the kernel stack from the parent process to the child process.
+ * This function is used during process creation (fork) to ensure the
+ * child process has a copy of the parent's stack.
+ */
+void process_kstack_copy(struct process *parent, struct process *child)
+{
+    child->kstack_top = child->kstack + PAGE_SIZE - 8;        // Set top of the child's kernel stack
+    child->kstack_ptr = child->kstack_top - sizeof(struct x86_stack);  // Set child's stack pointer
+
+    struct x86_stack *child_regs = (struct x86_stack *) child->kstack_ptr;  // Child's stack registers
+    struct x86_stack *parent_regs = (struct x86_stack *) (parent->kstack_top - sizeof(struct x86_stack));  // Parent's stack registers
+
+    *child_regs = *parent_regs;  // Copy parent's registers to child
+
+    child_regs->regs2.ebp = (uint32_t) (child->kstack_ptr + 28);  // Set child's base pointer
+    child_regs->old_ebp = (uint32_t) (child->kstack_ptr + 32);    // Set child's old base pointer
+    child_regs->old_eip = (unsigned) intr_return;                 // Set child's old instruction pointer
+    child_regs->regs1.eax = 0;                                    // Set child's eax register to 0
+}
+
+/*
+ * Allocate a process ID (pid). This function finds an available pid
+ * from the process table and returns it. If no pids are available,
+ * it returns 0.
+ */
+static int process_allocate_pid()
+{
+    static int last = 0;  // Last allocated pid
+
+    int i;
+
+    for(i = last + 1; i < PROCESS_MAX_PID; i++) {  // Loop through PIDs
+        if(!process_table[i]) {  // Check if the PID is available
+            last = i;  // Update last
+            return i;  // Return the PID
+        }
+    }
+
+    for(i = 1; i < last; i++) {  // Loop through PIDs again if needed
+        if(!process_table[i]) {  // Check if the PID is available
+            last = i;  // Update last
+            return i;  // Return the PID
+        }
+    }
+
+    return 0;  // Return 0 if no PID is available
+}
+
+/*
+ * Selectively inherit file descriptors from the parent process to the child process.
+ * This function copies specific file descriptors from the parent to the child based
+ * on the provided array of file descriptors.
+ */
 void process_selective_inherit(struct process *parent, struct process *child, int * fds, int length)
 {
-	int i;
+    int i;
 
-	for (i=0;i<length;i++) {
-		if(fds[i]>-1) {
-			child->ktable[i] = kobject_copy(parent->ktable[fds[i]]);
-		} else {
-			child->ktable[i] = 0;
-		}
-	}
+    for (i = 0; i < length; i++) {  // Loop through file descriptors
+        if(fds[i] > -1) {  // Check if the file descriptor is valid
+            child->ktable[i] = kobject_copy(parent->ktable[fds[i]]);  // Copy the kernel object
+        } else {
+            child->ktable[i] = 0;  // Set to null if not valid
+        }
+    }
 
 	child->ppid = parent->pid;
 }
@@ -218,12 +235,8 @@ struct process *process_create()
 		p->ktable[i] = 0;
 	}
 
-<<<<<<< HEAD
-	p->state = PROCESS_STATE_READY;
-=======
 	p->state = PROCESS_STATE_RUNNING;
 	printf("%d\n", p->pid);
->>>>>>> origin/anas_branch
 
 	return p;
 }
@@ -303,11 +316,7 @@ static void process_switch(int newstate)
 	interrupt_unblock();
 }
 
-<<<<<<< HEAD
-int allow_preempt = 0;
-=======
 int allow_preempt = 1;
->>>>>>> origin/anas_branch
 
 void process_preempt()
 {
@@ -325,11 +334,9 @@ void process_yield()
 
 void process_exit(int code)
 {
-<<<<<<< HEAD
-	// printf("process %d exiting with status %d...\n", current->pid, code); --> transport to kshell run
-=======
-	printf("process %d exiting with status %d...\n", current->pid, code); //--> transport to kshell run
->>>>>>> origin/anas_branch
+
+  printf("process %d exiting with status %d...\n", current->pid, code); //--> transport to kshell run
+
 	current->exitcode = code;
 	current->exitreason = PROCESS_EXIT_NORMAL;
 	process_wakeup_parent(&grave_watcher_list);	// On exit, wake up parent if need be
@@ -341,8 +348,7 @@ void process_wait(struct list *q)
 	list_push_tail(q, &current->node);
 	process_switch(PROCESS_STATE_BLOCKED);
 }
-<<<<<<< HEAD
-=======
+
 void active_proc(){  //added by anas
 	for (int i=0; i<PROCESS_MAX_PID; i++){
 		if(process_table[i]){
@@ -352,7 +358,6 @@ void active_proc(){  //added by anas
 }
 
 
->>>>>>> origin/anas_branch
 
 void process_wakeup(struct list *q)
 {
@@ -521,66 +526,12 @@ int process_reap(uint32_t pid)
 }
 
 /*
-process_pass_arguments set up the current process stack
-so that it contains a copy of p->args and p->args_length
-at the very top, serving as the initial arguments to the entry function:
-void entry( const char *args, int args_length );
-*/
-
-#define PUSH_INTEGER( value ) esp -= sizeof(int); *((int*)esp)=(int)(value);
-
-void process_pass_arguments(struct process *p, int argc, char **argv)
+ * Inherit all file descriptors from the parent process to the child process.
+ * This function copies all valid file descriptors from the parent to the child.
+ */
+void process_inherit(struct process *parent, struct process *child)
 {
-	/* Get the default stack pointer position. */
-	char *esp = (char *) PROCESS_STACK_INIT;
-
-	/* Make a local array to keep track of user addresses. */
-	char **addr_of_argv = kmalloc(sizeof(char *) * argc);
-
-	/* For each argument, in reverse order: */
-	int i;
-	for(i = (argc - 1); i >= 0; i--) {
-		/* Size is strlen plus null terminator, integer aligned. */
-		int length = strlen(argv[i]) + 1;
-		if(length % 4) {
-			length += (4 - length % 4);
-		}
-		esp -= length;
-
-		/* Push length bytes onto the stack. */
-		memcpy(esp, argv[i], length);
-
-		/* Remember that address for later */
-		addr_of_argv[i] = esp;
-	}
-
-	/* Push each item of argc, in reverse order. */
-	for(i = (argc - 1); i >= 0; i--) {
-		PUSH_INTEGER(addr_of_argv[i]);
-	}
-
-	/* Keep the address of the array start. */
-	const char *addr_of_addr_of_argv = esp;
-
-	/* Push the arguments to main */
-	PUSH_INTEGER(addr_of_addr_of_argv);
-	PUSH_INTEGER(argc);
-
-	/* Final stack pointer should be below the last item. */
-	esp -= 4;
-
-	/* Set the starting stack pointer on the kstack to this new value */
-	struct x86_stack *s = (struct x86_stack *) p->kstack_ptr;
-	s->esp = (int) (esp);
-
-	kfree(addr_of_argv);
-}
-
-int process_stats(int pid, struct process_stats *s)
-{
-	if(pid > PROCESS_MAX_PID || !process_table[pid]) {
-		return 1;
-	}
-	*s = process_table[pid]->stats;
-	return 0;
-}
+    /* Child inherits everything parent inherits */
+    int i;
+    int * fds = kmalloc(sizeof(int) * PROCESS_MAX_OBJECTS);  // Allocate memory for file descriptors
+    for (i = 0
