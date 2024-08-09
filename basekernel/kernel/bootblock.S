@@ -167,7 +167,7 @@ partition_start_lba:
 partition_length:
     .long 0
 credits_inpt:
-    .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid Elkoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
+    .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid ElKoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
 
 .org 510
 bootflag:
