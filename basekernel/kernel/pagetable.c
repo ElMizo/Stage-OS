@@ -34,18 +34,13 @@ static int clock_front = 0;
 static int clock_back = 0;
 static int clock_bits[ENTRIES_PER_TABLE]; 
 
-struct pagetable *pagetable_create() {
-    struct pagetable *pt = (struct pagetable *)page_alloc(1);
-    if (!pt) {
-        log_error("Failed to allocate memory for page table.");
-        return NULL;
-    }
-    return pt;
+struct pagetable *pagetable_create()
+{
+	return page_alloc(1);
 }
 
 void pagetable_init(struct pagetable *p) {
-    if (!p) return;
-
+   
     unsigned i, Max, End;
     Max = total_memory * 1024 * 1024;
 
@@ -80,6 +75,7 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr, int *
 
     struct pagetable *q;
     struct pageentry *e;
+    
     unsigned p_direc_indx = vaddr >> 22;
     unsigned p_tble_indx = (vaddr >> 12) & 0x3ff;
 
@@ -110,6 +106,7 @@ int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags
 
     struct pagetable *q;
     struct pageentry *e;
+    
     unsigned p_direc_indx = vaddr >> 22;
     unsigned p_tble_indx = (vaddr >> 12) & 0x3ff;
 
@@ -186,7 +183,7 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr) {
 }
 
 int clock_paging_algorithm() {
-    int i, j;
+    int i;
     int victim_page = -1;
 
     for (i = clock_front; i < ENTRIES_PER_TABLE; i++) {
@@ -261,6 +258,32 @@ void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length) {
     }
 }
 
+void pagetable_delete(struct pagetable *p)
+{
+	unsigned i, j;
+
+	struct pageentry *e;
+	struct pagetable *q;
+
+	for(i = 0; i < ENTRIES_PER_TABLE; i++) {
+		e = &p->entry[i];
+		if(e->present) {
+			q = (struct pagetable *) (e->addr << 12);
+			for(j = 0; j < ENTRIES_PER_TABLE; j++) {
+				e = &q->entry[j];
+				if(e->present && e->avail) {
+					void *paddr;
+					paddr = (void *) (e->addr << 12);
+					page_free(paddr);
+				}
+			}
+			page_free(q);
+		}
+	}
+
+	page_free(p);
+}
+
 struct pagetable *pagetable_load(struct pagetable *p) {
     struct pagetable *oldp;
     asm("mov %%cr3, %0" : "=r"(oldp));
@@ -275,4 +298,69 @@ void pagetable_unload(struct pagetable *p) {
 void pagetable_switch(struct pagetable *p) {
     struct pagetable *oldp = pagetable_load(p);
     pagetable_unload(oldp);
+}
+void pagetable_refresh()
+{
+	asm("mov %cr3, %eax");
+	asm("mov %eax, %cr3");
+}
+
+void pagetable_enable()
+{
+	asm("movl %cr0, %eax");
+	asm("orl $0x80000000, %eax");
+	asm("movl %eax, %cr0");
+}
+
+struct pagetable *pagetable_duplicate(struct pagetable *sp)
+{
+	unsigned i, j;
+
+	struct pageentry *e;
+	struct pagetable *q;
+
+	struct pageentry *newe;
+	struct pagetable *newq;
+	struct pagetable *newp = pagetable_create();
+	if(!newp)
+		goto cleanup;
+
+	for(i = 0; i < ENTRIES_PER_TABLE; i++) {
+		e = &sp->entry[i];
+		newe = &newp->entry[i];
+		if(e->present) {
+			q = (struct pagetable *) (e->addr << 12);
+			newq = pagetable_create();
+			if(!newq)
+				goto cleanup;
+			memcpy(newe, e, sizeof(struct pageentry));
+			newe->addr = (((unsigned) newq) >> 12);
+			for(j = 0; j < ENTRIES_PER_TABLE; j++) {
+				e = &q->entry[j];
+				newe = &newq->entry[j];
+				memcpy(newe, e, sizeof(struct pageentry));
+				if(e->present) {
+					void *paddr;
+					paddr = (void *) (e->addr << 12);
+					void *new_paddr = 0;
+					if(e->avail) {
+						new_paddr = page_alloc(0);
+						if(!new_paddr)
+							goto cleanup;
+						memcpy(new_paddr, paddr, PAGE_SIZE);
+					} else {
+						new_paddr = paddr;
+					}
+					newe->addr = (((unsigned) new_paddr) >> 12);
+				}
+			}
+		}
+	}
+	return newp;
+      cleanup:
+	printf("Pagetable duplicate errors\n");
+	if(newp) {
+		pagetable_delete(newp);
+	}
+	return 0;
 }
