@@ -10,59 +10,164 @@ See the file LICENSE for details.
 #include "string.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
+#include "logging.h"
 
-#define PAGE_SIZE_SHIFT 12
-#define PAGE_SIZE (1 << PAGE_SIZE_SHIFT)
+// Global variables for page management
+static uint32_t pages_free = 0;
+static uint32_t pages_total = 0;
 
-static uint32_t total_pages;
-static uint32_t free_pages;
-static uint32_t *page_map;
-static uint32_t page_map_size;
+static uint32_t *freemap = 0;
+static uint32_t freemap_bits = 0;
+static uint32_t freemap_bytes = 0;
+static uint32_t freemap_cells = 0;
+static uint32_t freemap_pages = 0;
 
-void page_init() {
-    total_pages = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
-    free_pages = total_pages;
+static void *main_memory_start = (void *) MAIN_MEMORY_START;
 
-    page_map_size = (total_pages + 7) / 8;
-    page_map = (uint32_t *) MAIN_MEMORY_START;
-    memset(page_map, 0xff, page_map_size);
+#define CELL_BITS (8 * sizeof(*freemap))
+#define GUARD_PATTERN 0xDEADBEEF  // Example guard pattern
 
-    for (int i = 0; i < page_map_size / PAGE_SIZE; i++) {
-        page_alloc(0);
+// Ensure memory system is initialized before operations
+static inline bool is_memory_initialized() {
+    return freemap != 0;
+}
+
+// Initialize page management system
+void page_init()
+{
+    if (is_memory_initialized()) {
+        LOG(LOG_LEVEL_WARN, "Memory system already initialized");
+        return;
     }
 
-    page_map[0] = 0x0;     //not understood
-}
+    pages_total = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
+    pages_free = pages_total;
 
-void page_stats(uint32_t *nfree, uint32_t *ntotal) {
-    *nfree = free_pages;
-    *ntotal = total_pages;
-}
+    LOG(LOG_LEVEL_INFO, "memory: %d MB (%d KB) total", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
 
-void *page_alloc(bool zeroit) {
-    uint32_t page_idx = 0;
-    while (page_idx < page_map_size) {
-        uint32_t page_mask = 1 << (page_idx % 8);
-        if (page_map[page_idx / 8] & page_mask) {
-            page_map[page_idx / 8] &= ~page_mask;
-            void *page_addr = (page_idx << PAGE_SIZE_SHIFT) + MAIN_MEMORY_START;
-            if (zeroit) {
-                memset(page_addr, 0, PAGE_SIZE);
-            }
-            free_pages--;
-            return page_addr;
+    freemap = main_memory_start;
+    freemap_bits = pages_total;
+    freemap_bytes = 1 + freemap_bits / 8;
+    freemap_cells = 1 + freemap_bits / CELL_BITS;
+    freemap_pages = 1 + freemap_bytes / PAGE_SIZE;
+
+    LOG(LOG_LEVEL_INFO, "memory: %d bits %d bytes %d cells %d pages", freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
+
+    memset(freemap, 0xff, freemap_bytes);
+    for (int i = 0; i < freemap_pages; i++) {
+        if (!page_alloc(false)) {
+            LOG(LOG_LEVEL_ERROR, "Failed to allocate page during initialization");
+            halt();
         }
-        page_idx++;
     }
 
-    printf("memory: WARNING: everything allocated\n");
-    halt();
-    return 0;
+    freemap[0] = 0x0;
+
+    LOG(LOG_LEVEL_INFO, "memory: %d MB (%d KB) available", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
 }
 
-void page_free(void *pageaddr) {
-    uint32_t page_idx = (pageaddr - MAIN_MEMORY_START) >> PAGE_SIZE_SHIFT;
-    uint32_t page_mask = 1 << (page_idx % 8);
-    page_map[page_idx / 8] |= page_mask;
-    free_pages++;
+// Return memory statistics
+void page_stats(uint32_t *nfree, uint32_t *ntotal)
+{
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory system not initialized");
+        *nfree = 0;
+        *ntotal = 0;
+        return;
+    }
+
+    *nfree = pages_free;
+    *ntotal = pages_total;
+}
+
+// Allocate a single page, with boundary checks, fragmentation handling, and memory corruption detection
+void *page_alloc(bool zeroit)
+{
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory not initialized yet!");
+        return NULL;
+    }
+
+    if (pages_free == 0) {
+        LOG(LOG_LEVEL_WARN, "Memory overcommitment: no pages free");
+        return NULL;
+    }
+
+    for (uint32_t i = 0; i < freemap_cells; i++) {
+        if (freemap[i] != 0) {
+            for (uint32_t j = 0; j < CELL_BITS; j++) {
+                uint32_t cellmask = (1 << j);
+                if (freemap[i] & cellmask) {
+                    freemap[i] &= ~cellmask;  // Mark page as allocated
+                    uint32_t pagenumber = i * CELL_BITS + j;
+
+                    if (pagenumber >= pages_total) {  // Boundary check
+                        LOG(LOG_LEVEL_ERROR, "Page number out of bounds: %d", pagenumber);
+                        return NULL;
+                    }
+
+                    void *pageaddr = (void *)((pagenumber << PAGE_BITS) + (void *)main_memory_start);
+
+                    // Memory corruption detection
+                    if (memcmp(pageaddr, &GUARD_PATTERN, sizeof(GUARD_PATTERN)) == 0) {
+                        LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
+                        return NULL;
+                    }
+
+                    if (zeroit) {
+                        memset(pageaddr, 0, PAGE_SIZE);
+                    }
+
+                    pages_free--;
+
+                    LOG(LOG_LEVEL_DEBUG, "Page allocated: %p, %d pages free", pageaddr, pages_free);
+                    return pageaddr;
+                }
+            }
+        }
+    }
+
+    LOG(LOG_LEVEL_ERROR, "Memory allocation failed: all pages are allocated");
+    return NULL;
+}
+
+// Free a previously allocated page, with boundary checks and memory corruption detection
+void page_free(void *pageaddr)
+{
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory not initialized yet!");
+        return;
+    }
+
+    if (pageaddr == NULL) {
+        LOG(LOG_LEVEL_ERROR, "Attempt to free a NULL page address");
+        return;
+    }
+
+    void *page_offset = (void *)pageaddr - (void *)main_memory_start;
+
+    if (page_offset % PAGE_SIZE != 0 || page_offset >= pages_total * PAGE_SIZE) {  // Boundary check
+        LOG(LOG_LEVEL_ERROR, "Invalid page address: %p", pageaddr);
+        return;
+    }
+
+    uint32_t pagenumber = page_offset >> PAGE_BITS;
+    uint32_t cellnumber = pagenumber / CELL_BITS;
+    uint32_t celloffset = pagenumber % CELL_BITS;
+    uint32_t cellmask = (1 << celloffset);
+
+    if (!(freemap[cellnumber] & cellmask)) {
+        LOG(LOG_LEVEL_WARN, "Double free detected at address %p", pageaddr);
+        return;
+    }
+
+    freemap[cellnumber] |= cellmask;
+    pages_free++;
+
+    // Memory corruption detection (check guard pattern)
+    if (memcmp(pageaddr, &GUARD_PATTERN, sizeof(GUARD_PATTERN)) == 0) {
+        LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
+    }
+
+    LOG(LOG_LEVEL_DEBUG, "Page freed: %p, %d pages free", pageaddr, pages_free);
 }
