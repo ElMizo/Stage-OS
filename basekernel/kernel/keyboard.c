@@ -35,9 +35,10 @@ struct keymap {
 	char shifted;
 	char ctrled;
 	char special;
+	char altgr;
 };
 
-static struct keymap keymap[] = {
+struct keymap keymap[] = { //removed static since it will now change depending on the keyboard layout
 #include "keymap.us.pc.c"
 };
 

@@ -232,6 +232,25 @@ static int kshell_execute(int argc, const char **argv)
 		} else {
 			printf("mount: requires device, unit, and fs type\n");
 		}
+	} else if(!strcmp(cmd, "kb_layout")){
+		if(argc==1){ /*no argument*/
+		printf("kb_layout: expected an argument\n Use \"kb_layout help\" for more informations");
+		}
+		else if(!strcmp(argv[1], "en")) {
+			//import en
+			printf("kb_layout: successfully loaded %s layout\n",argv[1]); 
+		}
+		else if(!strcmp(argv[1], "fr")) {
+			//import fr 
+			printf("kb_layout: successfully loaded %s layout\n",argv[1]);
+		}
+		else if(!strcmp(argv[1], "help")){
+			//print arguments n stuff
+			printf("kb_layout: available layouts are:\n ...work still in progress");
+		}
+		else{
+			printf("kb_layout: unknown layout %s\n", argv[1]);
+		}
 	} else if(!strcmp(cmd, "umount")) {
 		if(current->ktable[KNO_STDDIR]) {
 			printf("unmounting root directory\n");
@@ -356,7 +375,7 @@ static int kshell_execute(int argc, const char **argv)
 	} else if(!strcmp(cmd,"bcache_flush")) {
 		bcache_flush_all();
 	} else if(!strcmp(cmd, "help")) {
-		printf("Kernel Shell Commands:\nrun <path> <args>\nstart <path> <args>\nprocess_show\ninit\nkill <pid>\nreap <pid>\nwait\nlist\nautomount\nmount <device> <unit> <fstype>\numount\nformat <device> <unit><fstype>\ninstall atapi <srcunit> ata <dstunit>\nmkdir <path>\nremove <path>time\nbcache_stats\nbcache_flush\nreboot\nhelp\n\n");
+		printf("Kernel Shell Commands:\nrun <path> <args>\nstart <path> <args>\nprocess_show\nkb_layout <args>\ninit\nkill <pid>\nreap <pid>\nwait\nlist\nautomount\nmount <device> <unit> <fstype>\numount\nformat <device> <unit><fstype>\ninstall atapi <srcunit> ata <dstunit>\nmkdir <path>\nremove <path>time\nbcache_stats\nbcache_flush\nreboot\nhelp\n\n");
 	} else {
 		printf("%s: command not found\n", argv[0]);
 	}
@@ -386,7 +405,6 @@ int kshell_readline(char *line, int length)
 
 	return 0;
 }
-
 
 int kshell_launch()
 {
