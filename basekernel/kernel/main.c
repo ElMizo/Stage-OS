@@ -42,6 +42,8 @@ int kernel_main()
 	printf("video: %d x %d (addr %x)\n", video_xres, video_yres, video_buffer);
 	printf("kernel: %d bytes\n", kernel_size);
 
+	//pagetable_init_clock(); //added
+	
 	page_init();
 	kmalloc_init((char *) KMALLOC_START, KMALLOC_LENGTH);
 	interrupt_init();

@@ -181,7 +181,7 @@ void pagetable_switch(struct pagetable *p);
  *
  * @return the index of the victim page to be replaced
  */
-int clock_paging_algorithm();
+//int clock_paging_algorithm();
 
 /**
  * @brief Initializes the clock paging algorithm data structures
@@ -189,7 +189,7 @@ int clock_paging_algorithm();
  * The pagetable_init_clock() function initializes the clock bits array and
  * sets the clock front and back pointers to zero.
  */
-void pagetable_init_clock();
+//void pagetable_init_clock();
 
 /**
  * @brief Unloads a page table
@@ -206,5 +206,6 @@ void pagetable_unload(struct pagetable *p);
 //to comment
 void pagetable_delete(struct pagetable *p);
 
+void pagetable_refresh();
 
 #endif
