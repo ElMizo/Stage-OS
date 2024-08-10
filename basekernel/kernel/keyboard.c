@@ -39,7 +39,7 @@ struct keymap {
 };
 
 struct keymap keymap[] = { //removed static since it will now change depending on the keyboard layout
-#include "keymap.us.pc.c"
+#include "keymap.fr.pc.c"
 };
 
 static int shift_mode = 0;
