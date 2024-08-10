@@ -21,6 +21,7 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "bcache.h"
 #include "printf.h"
+#include "keymap.c"
 
 static int kshell_mount( const char *devname, int unit, const char *fs_type)
 {
@@ -236,12 +237,14 @@ static int kshell_execute(int argc, const char **argv)
 		if(argc==1){ /*no argument*/
 		printf("kb_layout: expected an argument\nUse \"kb_layout help\" for more information\n");
 		}
-		else if(!strcmp(argv[1], "en")) {
-			//import en
+		else if(!strcmp(argv[1], "us")) {
+			//import en-US
+			keymap = keymapus;
 			printf("kb_layout: successfully loaded %s layout\n",argv[1]); 
 		}
 		else if(!strcmp(argv[1], "fr")) {
-			//import fr 
+			//import fr-FR
+			keymap = keymapfr;
 			printf("kb_layout: successfully loaded %s layout\n",argv[1]);
 		}
 		else if(!strcmp(argv[1], "help")){
