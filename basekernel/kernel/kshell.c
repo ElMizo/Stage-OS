@@ -234,7 +234,7 @@ static int kshell_execute(int argc, const char **argv)
 		}
 	} else if(!strcmp(cmd, "kb_layout")){
 		if(argc==1){ /*no argument*/
-		printf("kb_layout: expected an argument\n Use \"kb_layout help\" for more informations");
+		printf("kb_layout: expected an argument\nUse \"kb_layout help\" for more information\n");
 		}
 		else if(!strcmp(argv[1], "en")) {
 			//import en
@@ -246,7 +246,7 @@ static int kshell_execute(int argc, const char **argv)
 		}
 		else if(!strcmp(argv[1], "help")){
 			//print arguments n stuff
-			printf("kb_layout: available layouts are:\n ...work still in progress");
+			printf("kb_layout: available layouts are:\n...work still in progress\n");
 		}
 		else{
 			printf("kb_layout: unknown layout %s\n", argv[1]);
