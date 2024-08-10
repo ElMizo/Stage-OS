@@ -21,7 +21,7 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "bcache.h"
 #include "printf.h"
-#include "keymap.c"
+#include "keymap.h"
 
 static int kshell_mount( const char *devname, int unit, const char *fs_type)
 {
@@ -239,12 +239,14 @@ static int kshell_execute(int argc, const char **argv)
 		}
 		else if(!strcmp(argv[1], "us")) {
 			//import en-US
-			keymap = keymapus;
+			for(int i=0; i<128; i++){
+				keymap[i]=keymapus[i];};
 			printf("kb_layout: successfully loaded %s layout\n",argv[1]); 
 		}
 		else if(!strcmp(argv[1], "fr")) {
 			//import fr-FR
-			keymap = keymapfr;
+			for(int i=0; i<128; i++){
+				keymap[i]=keymapfr[i];};
 			printf("kb_layout: successfully loaded %s layout\n",argv[1]);
 		}
 		else if(!strcmp(argv[1], "help")){

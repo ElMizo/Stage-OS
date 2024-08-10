@@ -10,7 +10,7 @@ See the file LICENSE for details.
 #include "kernel/ascii.h"
 #include "kernelcore.h"
 #include "event_queue.h"
-#include "keymap.c"
+#include "keymap.h"
 
 #define KEYBOARD_PORT 0x60
 

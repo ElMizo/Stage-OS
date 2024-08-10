@@ -8,10 +8,10 @@
 	    char special;
 	    char altgr;
     };
-    extern struct keymap keymapfr[];
+    extern struct keymap keymapfr[128];
 
-    extern struct keymap keymapus[];
+    extern struct keymap keymapus[128];
 
-    extern struct keymap keymap[];
+    extern struct keymap keymap[128];
 
 #endif // _KEYMAP_H_
