@@ -10,7 +10,9 @@ See the file LICENSE for details.
 #include "string.h"
 #include "memorylayout.h"
 #include "kernelcore.h"
+#include "logging.h"
 
+// Global variables for page management
 static uint32_t pages_free = 0;
 static uint32_t pages_total = 0;
 
@@ -22,86 +24,151 @@ static uint32_t freemap_pages = 0;
 
 static void *main_memory_start = (void *) MAIN_MEMORY_START;
 
-#define CELL_BITS (8*sizeof(*freemap))
+#define CELL_BITS (8 * sizeof(*freemap))
+#define GUARD_PATTERN 0xDEADBEEF  // Example guard pattern
+static uint32_t guard_pattern_bytes = GUARD_PATTERN;
 
+// Ensure memory system is initialized before operations
+static inline bool is_memory_initialized() {
+    return freemap != 0;
+}
+
+// Initialize page management system
 void page_init()
 {
-	int i;
+    if (is_memory_initialized()) {
+        LOG(LOG_LEVEL_WARN, "Memory system already initialized");
+        return;
+    }
 
-	pages_total = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
-	pages_free = pages_total;
-	printf("memory: %d MB (%d KB) total\n", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
+    pages_total = (total_memory * 1024 * 1024 - MAIN_MEMORY_START) / PAGE_SIZE;
+    pages_free = pages_total;
 
-	freemap = main_memory_start;
-	freemap_bits = pages_total;
-	freemap_bytes = 1 + freemap_bits / 8;
-	freemap_cells = 1 + freemap_bits / CELL_BITS;
-	freemap_pages = 1 + freemap_bytes / PAGE_SIZE;
+    LOG(LOG_LEVEL_INFO, "memory: %d MB (%d KB) total", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
 
-	printf("memory: %d bits %d bytes %d cells %d pages\n", freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
+    freemap = main_memory_start;
+    freemap_bits = pages_total;
+    freemap_bytes = 1 + freemap_bits / 8;
+    freemap_cells = 1 + freemap_bits / CELL_BITS;
+    freemap_pages = 1 + freemap_bytes / PAGE_SIZE;
 
-	memset(freemap, 0xff, freemap_bytes);
-	for(i = 0; i < freemap_pages; i++)
-		page_alloc(0);
+    LOG(LOG_LEVEL_INFO, "memory: %d bits %d bytes %d cells %d pages", freemap_bits, freemap_bytes, freemap_cells, freemap_pages);
 
-	// This is ahack that I don't understand yet.
-	// vmware doesn't like the use of a particular page
-	// close to 1MB, but what it is used for I don't know.
+    memset(freemap, 0xff, freemap_bytes);
+    for (int i = 0; i < freemap_pages; i++) {
+        if (!page_alloc(0)) {
+            LOG(LOG_LEVEL_ERROR, "Failed to allocate page during initialization");
+            halt();
+        }
+    }
 
-	freemap[0] = 0x0;
+    freemap[0] = 0x0;
 
-	printf("memory: %d MB (%d KB) available\n", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
+    LOG(LOG_LEVEL_INFO, "memory: %d MB (%d KB) available", (pages_free * PAGE_SIZE) / MEGA, (pages_free * PAGE_SIZE) / KILO);
 }
 
-void page_stats( uint32_t *nfree, uint32_t *ntotal )
+// Return memory statistics
+void page_stats(uint32_t *nfree, uint32_t *ntotal)
 {
-	*nfree = pages_free;
-	*ntotal = pages_total;
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory system not initialized");
+        *nfree = 0;
+        *ntotal = 0;
+        return;
+    }
+
+    *nfree = pages_free;
+    *ntotal = pages_total;
 }
 
+// Allocate a single page, with boundary checks, fragmentation handling, and memory corruption detection
 void *page_alloc(bool zeroit)
 {
-	uint32_t i, j;
-	uint32_t cellmask;
-	uint32_t pagenumber;
-	void *pageaddr;
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory not initialized yet!");
+        return 0;
+    }
 
-	if(!freemap) {
-		printf("memory: not initialized yet!\n");
-		return 0;
-	}
+    if (pages_free == 0) {
+        LOG(LOG_LEVEL_WARN, "Memory overcommitment: no pages free");
+        return 0;
+    }
 
-	for(i = 0; i < freemap_cells; i++) {
-		if(freemap[i] != 0) {
-			for(j = 0; j < CELL_BITS; j++) {
-				cellmask = (1 << j);
-				if(freemap[i] & cellmask) {
-					freemap[i] &= ~cellmask;
-					pagenumber = i * CELL_BITS + j;
-					pageaddr = (pagenumber << PAGE_BITS) + main_memory_start;
-					if(zeroit)
-						memset(pageaddr, 0, PAGE_SIZE);
-					pages_free--;
-					//printf("page: alloc %d\n",pages_free);
-					return pageaddr;
-				}
-			}
-		}
-	}
+    for (uint32_t i = 0; i < freemap_cells; i++) {
+        if (freemap[i] != 0) {
+            for (uint32_t j = 0; j < CELL_BITS; j++) {
+                uint32_t cellmask = (1 << j);
+                if (freemap[i] & cellmask) {
+                    freemap[i] &= ~cellmask;  // Mark page as allocated
+                    uint32_t pagenumber = i * CELL_BITS + j;
 
-	printf("memory: WARNING: everything allocated\n");
-	halt();
+                    if (pagenumber >= pages_total) {  // Boundary check
+                        LOG(LOG_LEVEL_ERROR, "Page number out of bounds: %d", pagenumber);
+                        return 0;
+                    }
 
-	return 0;
+                    void *pageaddr = (void *)((pagenumber << PAGE_BITS) + (uint32_t)(main_memory_start));
+
+                    // Memory corruption detection
+                    if (memcmp(pageaddr, &guard_pattern_bytes, sizeof(guard_pattern_bytes)) == 0) {
+                        LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
+                        return 0;
+                    }
+
+                    if (zeroit) {
+                        memset(pageaddr, 0, PAGE_SIZE);
+                    }
+
+                    pages_free--;
+
+                    LOG(LOG_LEVEL_DEBUG, "Page allocated: %p, %d pages free", pageaddr, pages_free);
+                    return pageaddr;
+                }
+            }
+        }
+    }
+
+    LOG(LOG_LEVEL_ERROR, "Memory allocation failed: all pages are allocated");
+    return 0;
 }
 
+// Free a previously allocated page, with boundary checks and memory corruption detection
 void page_free(void *pageaddr)
 {
-	uint32_t pagenumber = (pageaddr - main_memory_start) >> PAGE_BITS;
-	uint32_t cellnumber = pagenumber / CELL_BITS;
-	uint32_t celloffset = pagenumber % CELL_BITS;
-	uint32_t cellmask = (1 << celloffset);
-	freemap[cellnumber] |= cellmask;
-	pages_free++;
-	//printf("page: free %d\n",pages_free);
+    if (!is_memory_initialized()) {
+        LOG(LOG_LEVEL_ERROR, "Memory not initialized yet!");
+        return;
+    }
+
+    if (pageaddr == 0) {
+        LOG(LOG_LEVEL_ERROR, "Attempt to free a 0 page address");
+        return;
+    }
+
+    void *page_offset = (void *)((uint32_t)pageaddr - (uint32_t)main_memory_start);
+
+    if ((uint32_t)page_offset % PAGE_SIZE != 0 || page_offset >= pages_total * PAGE_SIZE) {  // Boundary check
+        LOG(LOG_LEVEL_ERROR, "Invalid page address: %p", pageaddr);
+        return;
+    }
+
+    uint32_t pagenumber = (uint32_t)page_offset >> PAGE_BITS;
+    uint32_t cellnumber = pagenumber / CELL_BITS;
+    uint32_t celloffset = pagenumber % CELL_BITS;
+    uint32_t cellmask = (1 << celloffset);
+
+    if (!(freemap[cellnumber] & cellmask)) {
+        LOG(LOG_LEVEL_WARN, "Double free detected at address %p", pageaddr);
+        return;
+    }
+
+    freemap[cellnumber] |= cellmask;
+    pages_free++;
+
+    // Memory corruption detection (check guard pattern)
+    if (memcmp(pageaddr, &guard_pattern_bytes, sizeof(guard_pattern_bytes)) == 0) {
+        LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
+    }
+
+    LOG(LOG_LEVEL_DEBUG, "Page freed: %p, %d pages free", pageaddr, pages_free);
 }

@@ -209,6 +209,20 @@ void memcpy(void *vd, const void *vs, unsigned length)
 		length--;
 	}
 }
+void *memcmp(void *vd, const void *vs, unsigned length)
+{
+    const unsigned char *d = vd;
+    const unsigned char *s = vs;
+    
+    while (length) {
+        if (*d != *s) {
+            return (*d < *s) ? -1 : 1;
+        }
+        d++;
+        s++;
+        length--;
+    }
+}
 
 char *uint_to_string(uint32_t u, char *s)
 {
