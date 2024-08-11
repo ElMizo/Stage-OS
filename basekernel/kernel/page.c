@@ -12,7 +12,6 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "logging.h"
 
-// Global variables for page management
 static uint32_t pages_free = 0;
 static uint32_t pages_total = 0;
 
@@ -25,7 +24,7 @@ static uint32_t freemap_pages = 0;
 static void *main_memory_start = (void *) MAIN_MEMORY_START;
 
 #define CELL_BITS (8 * sizeof(*freemap))
-#define GUARD_PATTERN 0xDEADBEEF  // Example guard pattern
+#define GUARD_PATTERN 0xDEADBEEF  // guard pattern
 static uint32_t guard_pattern_bytes = GUARD_PATTERN;
 
 // Ensure memory system is initialized before operations
