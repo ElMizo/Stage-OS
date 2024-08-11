@@ -1,70 +1,106 @@
-# What's different
+<h1 align="center" style="font-family: Georgia, serif;">WHAT'S DIFFERENT IN THE MEMORY MANAGEMENT SECTION</h1>
+
 <p align="center">
   <img src="https://github.com/ElMizo/Stage-OS/blob/Khalid_branch/same.gif">
 </p>
 
-## So what are the actual differences
-In the memory management section of our OS, our primary goal is to prioritize code clarity and ease of understanding while maintaining full functionality in memory management. We aim to make the code seamless and straightforward for any reader. To achieve this, we focused on enhancing `the page.c` and `pagetable.c` files through targeted improvements. Specifically, we implemented the Clock Paging Algorithm in the page replacement system to efficiently manage memory swaps. Additionally, we added a fault handler that provides feedback on the success of operations like page allocation and deallocation. Each file now includes detailed headers that explain every aspect of the code.
+# So what are the actual differences
+In the memory management section of our OS, our main objective is to enhance code clarity and readability while ensuring the memory management remains fully functional. We aim to create code that is intuitive and easy for any developer to follow. To accomplish this, we focused on refining the `page.c` and `pagetable.c` files with specific improvements.
+# `Page` Management Code Changes
+## Overview
+`page.c` has been enhanced with Memory Corruption Detection, Enhanced Boundary Checks, Error Handling and Reporting, and Logging, as detailed below:
+## Memory Corruption Detection
 
-# Clock Paging Algorithm
+Memory corruption occurs when a program unintentionally modifies memory, leading to unpredictable behavior or security vulnerabilities. To detect memory corruption, this system uses a **guard pattern** (`GUARD_PATTERN`) during both page allocation and deallocation.
 
-The Clock Paging Algorithm is a page replacement strategy used in operating systems to manage the pages in memory. It is an approximation of the Least Recently Used (LRU) algorithm, designed to be more efficient in terms of time complexity.
+- **During Allocation (`page_alloc`)**: Before allocating a page, the system checks if the memory at the target address matches the guard pattern. If it does, an error is logged, and the allocation is aborted, as this indicates potential memory corruption.
+- **During Deallocation (`page_free`)**: When a page is freed, the system checks the memory for the guard pattern again. If detected, an error is logged, signaling possible memory corruption.
 
-## How It Works
+This detection mechanism helps catch issues like buffer overflows or unintended memory modifications, improving the security and reliability of the system.
 
-1. **Circular List (Clock)**: Imagine the pages in memory are arranged in a circular list, much like the numbers on a clock. Each page has an associated "reference bit" that indicates whether the page has been accessed recently.
+## Enhanced Boundary Checks
 
-2. **Clock Hand**: There is a "clock hand" that points to one of the pages in this circular list. This hand moves around the circle as pages are accessed and replaced.
+Boundary checks ensure that memory accesses stay within valid bounds, preventing out-of-bounds errors that could lead to crashes or undefined behavior.
 
-3. **Reference Bit**:
-   - When a page is accessed, its reference bit is set to 1.
-   - The clock hand checks the reference bit of the page it points to:
-     - If the reference bit is 0, the page is not recently used, and it can be replaced.
-     - If the reference bit is 1, it means the page was recently used. The algorithm sets the reference bit to 0 and moves the clock hand to the next page.
+- **During Allocation (`page_alloc`)**: After identifying a free page, the system checks if the page number is within valid memory limits. If it exceeds the bounds, an error is logged, and the operation is aborted.
+- **During Deallocation (`page_free`)**: The system checks if the address being freed is within the valid memory range and properly aligned. If the address is invalid, an error is logged, and the deallocation is halted.
 
-4. **Page Replacement**:
-   - The algorithm continues to move the clock hand, clearing reference bits of pages that have been accessed recently.
-   - It stops when it finds a page with a reference bit of 0, which means the page hasn't been accessed recently and can be replaced with a new page.
-<p align="center">
-  <img src="image_2024-08-08_203651431.png">
-</p>
+These checks prevent memory access violations, ensuring the stability and safety of the memory management system.
 
-## Summary
+## Error Handling and Reporting
 
-- **Efficient**: The Clock Paging Algorithm is efficient because it doesn't require a complete traversal of all pages to find a replacement.
-- **Approximation of LRU**: It approximates the Least Recently Used (LRU) algorithm by using reference bits to track recent usage.
-- **Practical**: The algorithm is practical and widely used in operating systems due to its balance between performance and simplicity.
+The system integrates robust error handling and reporting mechanisms to ensure that issues are detected and addressed promptly.
 
-## Example Scenario
+- **Error Reporting**: The system uses a logging mechanism to report errors at different severity levels:
+  - **Warnings** for non-critical issues that may indicate potential problems (e.g., memory overcommitment).
+  - **Errors** for critical issues that require immediate attention (e.g., memory corruption, invalid operations).
+  
+- **Handling Initialization**: Functions like `page_alloc` and `page_free` include checks to ensure that the memory management system is initialized before performing operations. If the system is not initialized, an error is logged, and the operation is prevented.
 
-Imagine you have four pages in memory, and their reference bits are as follows (with the clock hand pointing to page 1):
+These mechanisms ensure that the system remains stable and that problems are identified and resolved quickly.
 
-Clock Hand -->
-Page 1 [reference bit: 1]                                                                                                                                                                                                             
- Clock Hand + 1 -->Page 2 [reference bit: 1]                                                                                                                                                                                                          
- Clock Hand + 2 -->Page 3 [reference bit: 0]                                                                                                                                                                                                                
- Clock Hand + 3 -->Page 4 [reference bit: 0]
+## Reporting and Logging
 
-- If a new page needs to be loaded, the clock hand will check Page 1. Since its reference bit is 1, it sets the bit to 0 and moves to Page 2.
-- Page 2 also has a reference bit of 1, so the algorithm sets it to 0 and moves to Page 3.
-- Page 3 has a reference bit of 0, so it selects this page for replacement.
+Logging is essential for tracking the behavior of the memory management system and diagnosing issues.
 
-This way, the algorithm ensures that pages that have been accessed recently are less likely to be replaced, approximating an LRU strategy.
+- **Logging Mechanism**: The system uses a `LOG` macro to log messages at various levels, including informational messages during initialization, warnings for potential issues, and errors for critical failures.
+- **Detailed Logging**: Logs capture details such as the total memory available, the number of free pages, and specific errors like invalid page addresses or memory corruption.
 
-# log_error
+These logs are invaluable for understanding system behavior, troubleshooting issues, and maintaining system stability.
+
+# `Page_Table` Management Code Changes
 
 ## Overview
 
-The `log_error` function is used to log error messages in the `pagetable.c` code. It helps with debugging by recording issues that occur during the execution of the code.
+The following section details the enhancements made to the `page_table` management code, focusing on improvements in privilege escalation protection, input validation, overflow and bounds checking, return code management, and the implementation of more comprehensive logging.
+## Code Changes and Explanations
 
-## Purpose
+### 1. Logging Improvements
 
-The primary purpose of the log_error function is to record error messages whenever an error condition is encountered in the code. This helps in debugging and monitoring the system.
+**Added Logging for Error Handling:**
 
-## Implementation method 
+- **Overview:** Integrated a logging mechanism to provide visibility into the code's execution and to capture significant events and errors.
+- **How It Works:** A logging header file was included, and various parts of the code were updated to use logging macros. This helps track errors, warnings, and other important information during execution.
 
-### Creation of log files
-- We developed C and header files that include a function for invoking the 'printk' function, a fundamental logging mechanism in the Linux kernel. This function allows developers to print messages to log files with varying levels of importance. It accepts three arguments: an integer representing the log level (e.g., LOG_LEVEL_ERR), a string format specifier (fmt), and a variable number of arguments to populate the format specifier. The function first determines the appropriate log level string based on the level argument. It then uses the vsprintf function to format the string with the provided format specifier and arguments. Finally, the formatted string, including the log level string, is printed to the log file.
+### 2. Input Validation
+
+**Added Address Validation Function:**
+
+- **Overview:** Implemented a function to validate addresses and ensure they fall within acceptable bounds.
+- **How It Works:** Before performing operations on addresses, the new validation function checks if the address exceeds the maximum allowed limit. If it does, an error is logged, and appropriate actions are taken to prevent invalid operations.
+
+### 3. Overflow and Bounds Checking
+
+**Ensured Memory Limits and Address Validations:**
+
+- **Overview:** Added checks to ensure that memory operations do not exceed allocated bounds and handle potential overflows.
+- **How It Works:** Functions that perform operations on memory and addresses were updated to include checks for memory limits and address boundaries. This prevents invalid access and potential corruption of memory.
+
+### 4. Privilege Escalation Handling
+
+**Checked for Unauthorized Access:**
+
+- **Overview:** Added checks to prevent privilege escalation by verifying if kernel-level operations are improperly applied to user-mode pages.
+- **How It Works:** During operations such as page mapping, the code now checks for attempts to escalate privileges inappropriately. If such an attempt is detected, an error is logged, and the operation is handled accordingly.
+
+### 5. Return Codes
+
+**Enhanced Error Handling with Return Codes:**
+
+- **Overview:** Improved error handling by introducing return codes to indicate success or failure of operations.
+- **How It Works:** Functions now return specific error codes to represent different types of failures or successes. This allows the caller to handle errors more effectively and ensures that the code can respond to issues in a controlled manner.
+
+### 6. Verbose Logging
+
+**Added Verbose Logging Statements:**
+
+- **Overview:** Enhanced visibility into the code’s operation by adding detailed logging statements.
+- **How It Works:** Various functions were updated to include logging statements that provide insights into their execution, including error conditions and important status changes. This helps in debugging and understanding the code’s behavior during runtime.
+
+## Conclusion
+
+The modifications improve the robustness and reliability of the page table management code by incorporating detailed logging, input validation, overflow and bounds checking, privilege escalation prevention, and enhanced error handling with return codes.
+
 # Memory management
 ## Paging
 <p align="center">
