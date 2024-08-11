@@ -58,7 +58,7 @@ static void unknown_exception(int i, int code)
 		
 		// Check if page is already mapped (which will result from violating the permissions on page) or that
 		// we are accessing neither the stack nor the heap, or we are accessing both. If so, error
-		if (page_already_present || !(data_access ^ stack_access)) {
+		if (page_already_present || (data_access ^ stack_access)) {
 			printf("interrupt: illegal page access at vaddr %x\n",vaddr);
 			process_dump(current);
 			process_exit(0);

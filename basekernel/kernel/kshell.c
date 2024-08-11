@@ -21,6 +21,7 @@ See the file LICENSE for details.
 #include "kernelcore.h"
 #include "bcache.h"
 #include "printf.h"
+#include "keymap.h"
 
 static int kshell_mount( const char *devname, int unit, const char *fs_type)
 {
@@ -178,18 +179,14 @@ static int kshell_execute(int argc, const char **argv)
 		} else {
 			printf("run: requires argument.\n");
 		}
-<<<<<<< HEAD
-	} else if(!strcmp(cmd, "exec")) {
-=======
 	}
-       else if(!strcmp(cmd, "ps")){
+       else if(!strcmp(cmd, "process-show")){
 	       active_proc();
        }
        else if(!strcmp(cmd, "init")){
 	       process_create();
 	       }
 	else if(!strcmp(cmd, "exec")) {
->>>>>>> origin/anas_branch
 		if(argc > 1) {
 			int fd = sys_open_file(KNO_STDDIR,argv[1],0,0);
 			if(fd>=0) {
@@ -235,6 +232,29 @@ static int kshell_execute(int argc, const char **argv)
 			}
 		} else {
 			printf("mount: requires device, unit, and fs type\n");
+		}
+	} else if(!strcmp(cmd, "kb_layout")){
+		if(argc==1){ /*no argument*/
+		printf("kb_layout: expected an argument\nUse \"kb_layout help\" for more information\n");
+		}
+		else if(!strcmp(argv[1], "us")) {
+			//import en-US
+			for(int i=0; i<128; i++){
+				keymap[i]=keymapus[i];};
+			printf("kb_layout: successfully loaded %s layout\n",argv[1]); 
+		}
+		else if(!strcmp(argv[1], "fr")) {
+			//import fr-FR
+			for(int i=0; i<128; i++){
+				keymap[i]=keymapfr[i];};
+			printf("kb_layout: successfully loaded %s layout\n",argv[1]);
+		}
+		else if(!strcmp(argv[1], "help")){
+			//print arguments n stuff
+			printf("kb_layout: available layouts are:\n...work still in progress\n");
+		}
+		else{
+			printf("kb_layout: unknown layout %s\n", argv[1]);
 		}
 	} else if(!strcmp(cmd, "umount")) {
 		if(current->ktable[KNO_STDDIR]) {
@@ -360,7 +380,7 @@ static int kshell_execute(int argc, const char **argv)
 	} else if(!strcmp(cmd,"bcache_flush")) {
 		bcache_flush_all();
 	} else if(!strcmp(cmd, "help")) {
-		printf("Kernel Shell Commands:\nrun <path> <args>\nstart <path> <args>\nkill <pid>\nreap <pid>\nwait\nlist\nautomount\nmount <device> <unit> <fstype>\numount\nformat <device> <unit><fstype>\ninstall atapi <srcunit> ata <dstunit>\nmkdir <path>\nremove <path>time\nbcache_stats\nbcache_flush\nreboot\nhelp\n\n");
+		printf("Kernel Shell Commands:\nrun <path> <args>\nstart <path> <args>\nprocess_show\nkb_layout <args>\ninit\nkill <pid>\nreap <pid>\nwait\nlist\nautomount\nmount <device> <unit> <fstype>\numount\nformat <device> <unit><fstype>\ninstall atapi <srcunit> ata <dstunit>\nmkdir <path>\nremove <path>time\nbcache_stats\nbcache_flush\nreboot\nhelp\n\n");
 	} else {
 		printf("%s: command not found\n", argv[0]);
 	}
@@ -390,7 +410,6 @@ int kshell_readline(char *line, int length)
 
 	return 0;
 }
-
 
 int kshell_launch()
 {

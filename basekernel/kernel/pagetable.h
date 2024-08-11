@@ -144,15 +144,6 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int f
 void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
 
 /**
- * @brief Deletes a page table
- *
- * The pagetable_delete() function deletes a page table, freeing any
- * associated resources and updating the internal structures.
- *
- * @param p is a pointer to the page table to be deleted
- */
-void pagetable_delete(struct pagetable *p);
-/**
  * @brief Loads a page table
  *
  * The pagetable_load() function loads a page table, preparing it for use
@@ -170,15 +161,6 @@ struct pagetable *pagetable_load(struct pagetable *p);
  * use the page table for memory management.
  */
 void pagetable_enable();
-
-/**
- * @brief Refreshes the page table
- *
- * The pagetable_refresh() function refreshes the page table, updating its
- * internal structures and ensuring that it is consistent with the current
- * state of the system.
- */
-void pagetable_refresh();
 
 /**
  * @brief Switches to a new page table
@@ -199,7 +181,7 @@ void pagetable_switch(struct pagetable *p);
  *
  * @return the index of the victim page to be replaced
  */
-int clock_paging_algorithm();
+//int clock_paging_algorithm();
 
 /**
  * @brief Initializes the clock paging algorithm data structures
@@ -207,7 +189,7 @@ int clock_paging_algorithm();
  * The pagetable_init_clock() function initializes the clock bits array and
  * sets the clock front and back pointers to zero.
  */
-void pagetable_init_clock();
+//void pagetable_init_clock();
 
 /**
  * @brief Unloads a page table
@@ -221,5 +203,9 @@ void pagetable_init_clock();
  */
 void pagetable_unload(struct pagetable *p);
 
+//to comment
+void pagetable_delete(struct pagetable *p);
+
+void pagetable_refresh();
 
 #endif

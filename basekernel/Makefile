@@ -7,7 +7,7 @@ USER_PROGRAMS=$(USER_SOURCES:c=exe)
 KERNEL_SOURCES=$(wildcard kernel/*.[chS])
 WORDS=/usr/share/dict/words
 
-.PHONY: build-kernel build-library build-userspace build-cdrom-image
+.PHONY: build-kernel build-library build-userspace build-cdrom-image fresh
 
 all: build-cdrom-image
 
@@ -52,3 +52,8 @@ clean:
 	cd kernel && make clean
 	cd library && make clean
 	cd user && make clean
+
+fresh :
+	make clean
+	make
+	make run

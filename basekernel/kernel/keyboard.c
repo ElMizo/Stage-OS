@@ -10,6 +10,7 @@ See the file LICENSE for details.
 #include "kernel/ascii.h"
 #include "kernelcore.h"
 #include "event_queue.h"
+#include "keymap.h"
 
 #define KEYBOARD_PORT 0x60
 
@@ -29,17 +30,6 @@ See the file LICENSE for details.
 #define KEYCODE_RIGHT (uint8_t)0x4D
 
 #define BUFFER_SIZE 256
-
-struct keymap {
-	char normal;
-	char shifted;
-	char ctrled;
-	char special;
-};
-
-static struct keymap keymap[] = {
-#include "keymap.us.pc.c"
-};
 
 static int shift_mode = 0;
 static int alt_mode = 0;
