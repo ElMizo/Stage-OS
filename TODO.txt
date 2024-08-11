@@ -1,2 +1,0 @@
-Basekernel/kernel/clock.c : changed clock ticks from 20 to 100
-! to do : study its consequences
