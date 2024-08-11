@@ -74,7 +74,7 @@ struct pagetable *pagetable_create();
  *
  * @param p is a pointer to the page table to be initialized
  */
-void pagetable_init(struct pagetable *p);
+void pagetable_init(struct pagetable *pt);
 
 /**
  * @brief Maps a virtual address to a physical address
@@ -89,23 +89,7 @@ void pagetable_init(struct pagetable *p);
  *
  * @return an integer indicating the success or failure of the mapping
  */
-int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags);
-
-/**
- * @brief Retrieves the physical address and flags associated with a virtual address
- *
- * The pagetable_getmap() function retrieves the physical address and flags
- * associated with a virtual address, using the page table to perform the
- * lookup.
- *
- * @param p is a pointer to the page table
- * @param vaddr is the virtual address to be looked up
- * @param paddr is a pointer to the physical address to be retrieved
- * @param flags is a pointer to the flags to be retrieved
- *
- * @return an integer indicating the success or failure of the lookup
- */
-int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr, int *flags);
+int pagetable_getmap(struct pagetable *pt, unsigned vaddr, unsigned *paddr, int *flags);
 
 /**
  * @brief Unmaps a virtual address
@@ -116,7 +100,7 @@ int pagetable_getmap(struct pagetable *p, unsigned vaddr, unsigned *paddr, int *
  * @param p is a pointer to the page table
  * @param vaddr is the virtual address to be unmapped
  */
-void pagetable_unmap(struct pagetable *p, unsigned vaddr);
+void pagetable_unmap(struct pagetable *pt, unsigned vaddr);
 
 /**
  * @brief Allocates a range of virtual addresses
@@ -129,7 +113,7 @@ void pagetable_unmap(struct pagetable *p, unsigned vaddr);
  * @param length is the length of the range to be allocated
  * @param flags are the flags to be used for the allocation
  */
-void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int flags);
+void pagetable_alloc(struct pagetable *pt, unsigned vaddr, unsigned length, int flags);
 
 /**
  * @brief Frees a range of virtual addresses
@@ -141,10 +125,18 @@ void pagetable_alloc(struct pagetable *p, unsigned vaddr, unsigned length, int f
  * @param vaddr is the starting virtual address of the range to be freed
  * @param length is the length of the range to be freed
  */
-void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
+void pagetable_free(struct pagetable *pt, unsigned vaddr, unsigned length);
 
 /**
- * @brief Loads a page table
+ * @brief Deletes a page table
+ *
+ * The pagetable_delete() function deletes a page table, freeing any
+ * associated resources and updating the internal structures.
+ *
+ * @param p is a pointer to the page table to be deleted
+ */
+void pagetable_delete(struct pagetable *pt);
+/** * @brief Loads a page table
  *
  * The pagetable_load() function loads a page table, preparing it for use
  * by the system.
@@ -153,7 +145,7 @@ void pagetable_free(struct pagetable *p, unsigned vaddr, unsigned length);
  *
  * @return a pointer to the loaded page table
  */
-struct pagetable *pagetable_load(struct pagetable *p);
+struct pagetable *pagetable_load(struct pagetable *pt);
 /**
  * @brief Enables paging
  *
@@ -182,30 +174,3 @@ void pagetable_switch(struct pagetable *p);
  * @return the index of the victim page to be replaced
  */
 //int clock_paging_algorithm();
-
-/**
- * @brief Initializes the clock paging algorithm data structures
- *
- * The pagetable_init_clock() function initializes the clock bits array and
- * sets the clock front and back pointers to zero.
- */
-//void pagetable_init_clock();
-
-/**
- * @brief Unloads a page table
- *
- * The pagetable_unload() function unloads a page table, preparing it for use
- * by the system next time.
- *
- * @param p is a pointer to the page table to be unloaded
- *
- * @return a pointer to the loaded page table
- */
-void pagetable_unload(struct pagetable *p);
-
-//to comment
-void pagetable_delete(struct pagetable *p);
-
-void pagetable_refresh();
-
-#endif
