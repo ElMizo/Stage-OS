@@ -30,7 +30,10 @@ const char *strchr(const char *s, char ch);
 
 void memset(void *d, char value, unsigned length);
 void memcpy(void *d, const void *s, unsigned length);
+void *memcmp(void *vd, const void *vs, unsigned length);
 
 void printf(const char *s, ...);
+void log_error(const char *message);
+
 
 #endif
