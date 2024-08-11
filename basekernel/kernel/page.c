@@ -26,6 +26,7 @@ static void *main_memory_start = (void *) MAIN_MEMORY_START;
 
 #define CELL_BITS (8 * sizeof(*freemap))
 #define GUARD_PATTERN 0xDEADBEEF  // Example guard pattern
+static uint32_t guard_pattern_bytes = GUARD_PATTERN;
 
 // Ensure memory system is initialized before operations
 static inline bool is_memory_initialized() {
@@ -55,7 +56,7 @@ void page_init()
 
     memset(freemap, 0xff, freemap_bytes);
     for (int i = 0; i < freemap_pages; i++) {
-        if (!page_alloc(false)) {
+        if (!page_alloc(0)) {
             LOG(LOG_LEVEL_ERROR, "Failed to allocate page during initialization");
             halt();
         }
@@ -85,12 +86,12 @@ void *page_alloc(bool zeroit)
 {
     if (!is_memory_initialized()) {
         LOG(LOG_LEVEL_ERROR, "Memory not initialized yet!");
-        return NULL;
+        return 0;
     }
 
     if (pages_free == 0) {
         LOG(LOG_LEVEL_WARN, "Memory overcommitment: no pages free");
-        return NULL;
+        return 0;
     }
 
     for (uint32_t i = 0; i < freemap_cells; i++) {
@@ -103,15 +104,15 @@ void *page_alloc(bool zeroit)
 
                     if (pagenumber >= pages_total) {  // Boundary check
                         LOG(LOG_LEVEL_ERROR, "Page number out of bounds: %d", pagenumber);
-                        return NULL;
+                        return 0;
                     }
 
-                    void *pageaddr = (void *)((pagenumber << PAGE_BITS) + (void *)main_memory_start);
+                    void *pageaddr = (void *)((pagenumber << PAGE_BITS) + (uint32_t)(main_memory_start));
 
                     // Memory corruption detection
-                    if (memcmp(pageaddr, &GUARD_PATTERN, sizeof(GUARD_PATTERN)) == 0) {
+                    if (memcmp(pageaddr, &guard_pattern_bytes, sizeof(guard_pattern_bytes)) == 0) {
                         LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
-                        return NULL;
+                        return 0;
                     }
 
                     if (zeroit) {
@@ -128,7 +129,7 @@ void *page_alloc(bool zeroit)
     }
 
     LOG(LOG_LEVEL_ERROR, "Memory allocation failed: all pages are allocated");
-    return NULL;
+    return 0;
 }
 
 // Free a previously allocated page, with boundary checks and memory corruption detection
@@ -139,19 +140,19 @@ void page_free(void *pageaddr)
         return;
     }
 
-    if (pageaddr == NULL) {
-        LOG(LOG_LEVEL_ERROR, "Attempt to free a NULL page address");
+    if (pageaddr == 0) {
+        LOG(LOG_LEVEL_ERROR, "Attempt to free a 0 page address");
         return;
     }
 
-    void *page_offset = (void *)pageaddr - (void *)main_memory_start;
+    void *page_offset = (void *)((uint32_t)pageaddr - (uint32_t)main_memory_start);
 
-    if (page_offset % PAGE_SIZE != 0 || page_offset >= pages_total * PAGE_SIZE) {  // Boundary check
+    if ((uint32_t)page_offset % PAGE_SIZE != 0 || page_offset >= pages_total * PAGE_SIZE) {  // Boundary check
         LOG(LOG_LEVEL_ERROR, "Invalid page address: %p", pageaddr);
         return;
     }
 
-    uint32_t pagenumber = page_offset >> PAGE_BITS;
+    uint32_t pagenumber = (uint32_t)page_offset >> PAGE_BITS;
     uint32_t cellnumber = pagenumber / CELL_BITS;
     uint32_t celloffset = pagenumber % CELL_BITS;
     uint32_t cellmask = (1 << celloffset);
@@ -165,7 +166,7 @@ void page_free(void *pageaddr)
     pages_free++;
 
     // Memory corruption detection (check guard pattern)
-    if (memcmp(pageaddr, &GUARD_PATTERN, sizeof(GUARD_PATTERN)) == 0) {
+    if (memcmp(pageaddr, &guard_pattern_bytes, sizeof(guard_pattern_bytes)) == 0) {
         LOG(LOG_LEVEL_ERROR, "Memory corruption detected at address %p", pageaddr);
     }
 
