@@ -9,3 +9,4 @@ kernel/bootblock
 kernel/kernel
 cross
 image
+.vscode
