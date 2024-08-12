@@ -5,7 +5,7 @@
 </p>
 
 # So what are the actual differences
-In the memory management section of our OS, our main objective is to enhance code clarity and readability while ensuring the memory management remains fully functional. We aim to create code that is intuitive and easy for any developer to follow. To accomplish this, we focused on refining the `page.c` and `pagetable.c` files with specific improvements.
+In the memory management section of our OS, our main objective was to enhance code clarity and readability while ensuring the memory management remains fully functional. We aim to create code that is intuitive and easy for any developer to follow. To accomplish this, we focused on refining the `page.c` and `pagetable.c` files with specific improvements.
 # `Page` Management Code Changes
 ## Overview
 `page.c` has been enhanced with Memory Corruption Detection, Enhanced Boundary Checks, Error Handling and Reporting, and Logging, as detailed below:
