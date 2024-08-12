@@ -77,6 +77,22 @@ struct pagetable *pagetable_create();
 void pagetable_init(struct pagetable *pt);
 
 /**
+ * @brief Maps a virtual address to a physical address in the page table
+ *
+ * The `pagetable_map()` function maps a virtual address to a physical address within the specified 
+ * page table. It sets the necessary page table entries to establish the mapping and applies the 
+ * specified flags to control access permissions and other attributes.
+ *
+ * @param p is a pointer to the page table where the mapping is to be established
+ * @param vaddr is the virtual address to be mapped
+ * @param paddr is the physical address to be associated with the virtual address
+ * @param flags are the access control and other flags for the mapping (e.g., read/write permissions)
+ *
+ * @return an integer indicating the success or failure of the mapping process.
+ */
+int pagetable_map(struct pagetable *p, unsigned vaddr, unsigned paddr, int flags);
+
+/**
  * @brief Maps a virtual address to a physical address
  *
  * The pagetable_map() function maps a virtual address to a physical address,
@@ -165,13 +181,21 @@ void pagetable_enable();
 void pagetable_refresh();
 
 /**
- * @brief Initializes the clock paging algorithm data structures
+ * @brief Duplicates a given page table structure
  *
- * The pagetable_init_clock() function initializes the clock bits array and
- * sets the clock front and back pointers to zero.
+ * The `pagetable_duplicate()` function creates a duplicate of the provided
+ * page table, including all of its entries and subpage tables. It recursively 
+ * allocates new memory for each subpage table and copies the contents from 
+ * the source page table to the new one. This ensures that the new page table 
+ * structure is a complete and independent copy of the source.
+ *
+ * If any memory allocation fails during the duplication process, the function 
+ * cleans up any allocated resources and returns `0` to indicate an error.
+ *
+ * @param source_pt is a pointer to the source page table that needs to be duplicated
+ *
+ * @return a pointer to the newly created page table, or `0` if the duplication fails
  */
-void pagetable_init_clock();
-
 struct pagetable *pagetable_duplicate(struct pagetable *source_pt);
 
 #endif
