@@ -24,7 +24,6 @@
 
 #include "kernel/types.h"
 
-void  page_init(); //initializes the page management system
 /********************************************************************************************
  * @brief initializes the page management system
  *
@@ -32,8 +31,8 @@ void  page_init(); //initializes the page management system
  * page tables, allocation, and statistics, to prepare the system for memory management.
  *
  ********************************************************************************************/
+void  page_init(); //initializes the page management system
 
-void *page_alloc(bool zeroit); //allocates a new page of memory
 /********************************************************************************************
  * @brief Allocates a new page of memory
  *
@@ -46,8 +45,9 @@ void *page_alloc(bool zeroit); //allocates a new page of memory
  * @return a pointer to the newly allocated page
  * 
  ********************************************************************************************/
+void *page_alloc(bool zeroit); //allocates a new page of memory
 
-void  page_free(void *addr); //frees a previously allocated page of memory
+
 /********************************************************************************************
  * @brief frees a previously allocated page of memory
  *
@@ -57,8 +57,9 @@ void  page_free(void *addr); //frees a previously allocated page of memory
  * @param addr is the address of the page to be freed.
  * 
  ********************************************************************************************/
+void  page_free(void *addr); //frees a previously allocated page of memory
 
-void  page_stats( uint32_t *nfree, uint32_t *ntotal ); //takes statistics about the page management system
+
 /********************************************************************************************
  * @brief takes statistics about the page management system
  *
@@ -69,6 +70,6 @@ void  page_stats( uint32_t *nfree, uint32_t *ntotal ); //takes statistics about 
  * @param  ntotal is a pointer to uint32_t variable that will hold the number of pages.
 
  ********************************************************************************************/
-
+void  page_stats( uint32_t *nfree, uint32_t *ntotal ); //takes statistics about the page management system
 
 #endif
