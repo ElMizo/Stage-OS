@@ -6,6 +6,7 @@
 #include "kernel/ascii.h"
 #include "library/errno.h"
 #include "library/kernel_object_string.h"
+#include "../kernel/commandstock.h"
 
 #define MAX_LINE_LENGTH 1024
 
@@ -37,13 +38,16 @@ void do_table()
 
 
 int do_command(char *line)
-{
+{	
+	
 	const char *pch = strtok(line, " ");
 	if(pch && !strcmp(pch, "echo")) {
+		add_command(pch);
 		pch = strtok(0, " ");
 		if(pch)
 			printf("%s\n", pch);
 	} else if(pch && !strcmp(pch, "start")) {
+		add_command(pch);
 		pch = strtok(0, " ");
 		if(pch) {
 			const char *argv[20];
@@ -69,6 +73,7 @@ int do_command(char *line)
 			printf("start: missing argument\n");
 		}
 	} else if(pch && !strcmp(pch, "run")) {
+		add_command(pch);
 		pch = strtok(0, " ");
 		if(pch) {
 			const char *argv[20];
@@ -100,6 +105,7 @@ int do_command(char *line)
 			printf("run: requires argument\n");
 		}
 	} else if(pch && !strcmp(pch, "reap")) {
+		add_command(pch);
 		pch = strtok(0, " ");
 		int pid;
 		if(pch && str2int(pch, &pid)) {
@@ -111,7 +117,8 @@ int do_command(char *line)
 		} else
 			printf("reap: expected process id number but got %s\n", pch);
 	} else if(pch && !strcmp(pch, "kill")) {
-		pch = strtok(0, " ");
+		add_command(pch);
+		pch = strtok(0, " ");		
 		int pid;
 		if(pch && str2int(pch, &pid)) {
 			syscall_process_kill(pid);
@@ -119,7 +126,8 @@ int do_command(char *line)
 			printf("kill: expected process id number but got %s\n", pch);
 
 	} else if(pch && !strcmp(pch, "wait")) {
-		pch = strtok(0, " ");
+		add_command(pch);
+		pch = strtok(0, " ");		
 		if(pch)
 			printf("%s: unexpected argument\n", pch);
 		else {
@@ -132,6 +140,7 @@ int do_command(char *line)
 		}
 	} else if(pch && !strcmp(pch, "list")) {
 		const char *arg = strtok(0," ");
+		add_command(pch);
 		if(!arg) arg = "/";
 		char buffer[1024];
 		int fd = syscall_open_dir(KNO_STDDIR,arg,0);
@@ -142,6 +151,7 @@ int do_command(char *line)
 		}
 	} else if(pch && !strcmp(pch, "enter")) {
 		char *path = strtok(0, " ");
+		add_command(pch);
 		if(!path) {
 			printf("Incorrect arguments, usage: enter <path>\n");
 			return 1;
@@ -156,9 +166,12 @@ int do_command(char *line)
 		}
 	} else if(pch && !strcmp(pch,"table")) {
 		do_table();
+		add_command(pch);
 	} else if(pch && !strcmp(pch, "help")) {
 		printf("Commands:\necho <text>\nrun <path>\nmount <unit_no> <fs_type>\nlist\nstart <path>\nkill <pid>\nreap <pid>\nwait\ntable\nhelp\nexit\n");
+		add_command(pch);
 	} else if(pch && !strcmp(pch, "exit")) {
+		add_command(pch);
 		exit(0);
 	} else if(pch) {
 		printf("%s: command not found\n", pch);

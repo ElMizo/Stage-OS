@@ -22,6 +22,7 @@ See the file LICENSE for details.
 #include "bcache.h"
 #include "printf.h"
 #include "keymap.h"
+#include "commandstock.h"
 
 static int kshell_mount( const char *devname, int unit, const char *fs_type)
 {
@@ -405,9 +406,19 @@ int kshell_readline(char *line, int length)
 			putchar(c);
 			line[i] = c;
 			i++;
-		}
+		}else {
+			switch (c)
+			{
+			case KEY_UP:
+				get_previous_command();
+				break;
+			
+			case KEY_DOWN:
+				get_next_command();
+				break;
+			}
+		}	
 	}
-
 	return 0;
 }
 
