@@ -1,9 +1,0 @@
-/tinyos/tinyos/
-/tinyos/object/
-*.sdf
-*.sln
-*.suo
-*.vcproj
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
