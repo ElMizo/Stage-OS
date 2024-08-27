@@ -28,7 +28,7 @@ kernel_size:
 	.long	_end-_start
 		
 realstart:
-.code16
+	
 # While we are briefly still in 16-bit real mode,
 # it is safe to call the BIOS to set things up.
 
@@ -213,6 +213,7 @@ bios_putchar:
 	pop	%bx
 	pop	%ax
 	ret
+
 # The video_info structure is filled in by a BIOS
 # call above, and is used to record the basic video
 # layout for the graphics subsystem.  See page 30
@@ -250,6 +251,7 @@ video_buffer:
 .align 4
 videomsg:
 	.asciz	"fatal error: couldn't find suitable video mode!\r\n"
+
 ###########################
 # 32 BIT CODE BEGINS HERE #
 ###########################

@@ -13,32 +13,7 @@ _start2:
     movw $0x0000, %ax       # Set up the stack
     movw %ax, %ss
     movw $0xfff0, %sp
-    movb $0x00, %ah         # Set video mode
-    movb $0x03, %al         # 80x25 text mode
-    int $0x10
 
-firstcredits:
-    movw $dthain_creds, %si   # Print credits
-    call bios_putstring
-
-firstkeypress:
-    movb $0x00, %ah         # BIOS function for waiting for a key press
-    int $0x16               # BIOS interrupt for keyboard service
-    cmpb $0x1C, %ah        # Compare key scan code with 0x1C (Enter key)
-    jne firstkeypress                # If not Enter key, repeat waiting
-
-    movb $0x00, %ah
-    movb $0x03, %al
-    int $0x10
-
-secondcredits:
-    movw $credits_inpt, %si
-    call bios_putstring
-secondkeypress:
-    movb $0x00, %ah
-    int $0x16
-    cmpb $0x1C, %ah
-    jne secondkeypress
     movb %dl, disk_number   # Save the disk number
     movw $partition_status, %di # Set the partition table as dest
     movw $12, %cx           # Copy 12 bytes from si to di
@@ -47,6 +22,20 @@ secondkeypress:
     movw $loadmsg, %si      # Print initial message
     call bios_putstring
 
+    movb $0x00, %ah         # Set video mode
+    movb $0x03, %al         # 80x25 text mode
+    int $0x10
+
+
+printingcredits:
+    movw $credits_inpt, %si   # Print credits
+    call bios_putstring
+
+done:
+    movb $0x00, %ah         # BIOS function for waiting for a key press
+    int $0x16               # BIOS interrupt for keyboard service
+    cmpb $0x1C, %ah        # Compare key scan code with 0x1C (Enter key)
+    jne done                # If not Enter key, repeat waiting
 
     xorb %ah, %ah           # Reset the disk system
     int $0x13
@@ -177,10 +166,9 @@ partition_start_lba:
     .long 0
 partition_length:
     .long 0
-dthain_creds:
-    .asciz "\n _                    _                        _\n| |__   __ _ ___  ___| | _____ _ __ _ __   ___| |\n| '_ \ / _` / __|/ _ \ |/ / _ \ '__| '_ \ / _ \ |\n| |_) | (_| \__ \  __/   <  __/ |  | | | |  __/ |\n|_.__/ \__,_|___/\___|_|\_\___|_|  |_| |_|\___|_|\nBy Douglas Thain 'dhtain'\nPropriety of University of Notre Dame"
 credits_inpt:
-    .asciz "\nWork by: \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid ElKoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
+    .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid ElKoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
+
 .org 510
 bootflag:
     .word 0xaa55
