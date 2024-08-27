@@ -166,9 +166,10 @@ partition_start_lba:
     .long 0
 partition_length:
     .long 0
+dthain_creds:
+    .asciz "\n basekernel by dhtain and The University of Notre Dame"
 credits_inpt:
     .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid ElKoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
-
 .org 510
 bootflag:
     .word 0xaa55
