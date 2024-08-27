@@ -167,7 +167,7 @@ partition_start_lba:
 partition_length:
     .long 0
 dthain_creds:
-    .asciz "\n Basekernel by Douglas Thain \"dhtain\" and The University of Notre Dame"
+    .asciz "\n _                    _                        _\n| |__   __ _ ___  ___| | _____ _ __ _ __   ___| |\n| '_ \ / _` / __|/ _ \ |/ / _ \ '__| '_ \ / _ \ |\n| |_) | (_| \__ \  __/   <  __/ |  | | | |  __/ |\n|_.__/ \__,_|___/\___|_|\_\___|_|  |_| |_|\___|_|"
 credits_inpt:
     .asciz "\nThis work was done by : \n\r   \t-Hamza Aarab\n\r   \t-Hassan Labyad\n\r   \t-Khalid ElKoussami\n\r   \t-Abdelaali Chattaoui\n\r   \t-Anas Azouane"
 .org 510
