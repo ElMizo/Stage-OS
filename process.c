@@ -4,6 +4,7 @@ This software is distributed under the GNU General Public License.
 See the file LICENSE for details.
 */
 
+#include <stddef.h>
 #include "process.h"
 #include "kobject.h"
 #include "page.h"
@@ -19,26 +20,82 @@ See the file LICENSE for details.
 #include "keyboard.h"
 #include "clock.h"
 
-struct process *current = 0; // struct from the "process.h"
-struct list ready_list = { 0, 0 }; // struct from the "list.h"
-struct list grave_list = { 0, 0 }; 
+
+struct process *current = 0;
+struct list ready_list = { 0, 0 };
+struct list grave_list = { 0, 0 };
 struct list grave_watcher_list = { 0, 0 };	// parent processes are put here to wait for their children
+struct process *proc;
 struct process *process_table[PROCESS_MAX_PID] = { 0 };
+
+static struct process *current_process = NULL;
+static struct list ready_queue = { 0, 0 };
+
+
+void enqueue_process(struct list *queue, struct process *proc)
+{
+    list_push_tail(queue, (struct list_node *)proc);
+}
+
+
+struct process *dequeue_process(struct list *queue)
+{
+    return (struct process *)list_pop_head(queue);
+}
+
+
+void schedule()
+{
+	current_process = dequeue_process(&ready_queue);
+	if (current_process != NULL) {
+		current_process->time_slice = 10;  // Initialize time slice
+		restore_process_state(current_process);
+	}
+}
+
+void save_process_state(struct process *proc)
+{
+    asm volatile(
+        "movl %%esp, %0\n\t"  // Save stack pointer
+        "movl %%ebp, %1\n\t"  // Save base pointer
+        "movl $1f, %2\n\t"    // Save instruction pointer
+        "1:\n\t"
+        : "=m"(proc->stack.esp), "=m"(proc->stack.old_ebp), "=m"(proc->stack.old_eip)
+        :
+        : "memory"
+    );
+}
+
+void restore_process_state(struct process *proc)
+{
+    asm volatile(
+        "movl %0, %%esp\n\t"  // Restore stack pointer
+        "movl %1, %%ebp\n\t"  // Restore base pointer
+        "jmp *%2\n\t"         // Jump to the saved instruction pointer
+        :
+        : "m"(proc->stack.esp), "m"(proc->stack.old_ebp), "m"(proc->stack.old_eip)
+        : "memory"
+    );
+}
 
 void process_init()
 {
-	current = process_create(); // Create a new process
+	current = process_create();
 
-	pagetable_load(current->pagetable); // return struct pagetable oldp
+	pagetable_load(current->pagetable);
 	pagetable_enable();
 
-	current->state = PROCESS_STATE_READY; // process is ready to run 
+	current->state = PROCESS_STATE_READY;
 
-	current->waiting_for_child_pid = 0; 
+	current->waiting_for_child_pid = 0;
+	
+	proc->remaining_time = PROC_EXEC_TIME;  // Set process execution time
+	proc->time_slice = 10;  // Initialize time slice
+	
+	enqueue_process(&ready_queue, proc);
 }
 
-/*Reset the kernel stack of a process*/
-void process_kstack_reset(struct process *p, unsigned entry_point) 
+void process_kstack_reset(struct process *p, unsigned entry_point)
 {
 	struct x86_stack *s;
 
@@ -82,22 +139,21 @@ Valid pids start at 1 and go to PROCESS_MAX_PID.
 To avoid confusion, keep picking increasing
 pids until it is necessary to wrap around.
 "last" is the most recently selected pid.
-The process_allocate_pid function returns an integer value that represents the Process ID (PID) for a new process.
 */
 
 static int process_allocate_pid()
 {
-	static int last = 0; //   Static variable to keep track of the last allocated PID
+	static int last = 0;
 
 	int i;
 
 	for(i = last + 1; i < PROCESS_MAX_PID; i++) {
-		 if(!process_table[i]) { // If the PID is not in use
+		if(!process_table[i]) {
 			last = i;
 			return i;
 		}
 	}
-// look for an available PID from 1 up to the last allocated one
+
 	for(i = 1; i < last; i++) {
 		if(!process_table[i]) {
 			last = i;
@@ -105,7 +161,7 @@ static int process_allocate_pid()
 		}
 	}
 
-	return 0; // Return 0 if no available PID is found (which typically indicates an error).
+	return 0;
 }
 
 void process_selective_inherit(struct process *parent, struct process *child, int * fds, int length)
@@ -140,33 +196,29 @@ void process_inherit(struct process *parent, struct process *child)
 	kfree(fds);
 }
 
-// Sets the size of the data segment for the process `p`.
 int process_data_size_set(struct process *p, unsigned size)
 {
-    // Round up the size to the nearest page boundary if it is not already aligned.
-    if(size % PAGE_SIZE) {
-        size += (PAGE_SIZE - size % PAGE_SIZE);
-    }
+	// XXX check valid ranges
+	// XXX round up to page size
 
-    // If the new size is greater than the current data size, allocate more pages.
-    if(size > p->vm_data_size) {
-        uint32_t start = PROCESS_ENTRY_POINT + p->vm_data_size;  // Calculate the starting address for allocation.
-        pagetable_alloc(p->pagetable, start, size, PAGE_FLAG_USER | PAGE_FLAG_READWRITE | PAGE_FLAG_CLEAR);  // Allocate pages.
-    }
-    // If the new size is smaller than the current data size, free the excess pages.
-    else if(size < p->vm_data_size) {
-        uint32_t start = PROCESS_ENTRY_POINT + size;  // Calculate the starting address for freeing pages.
-        pagetable_free(p->pagetable, start, p->vm_data_size);  // Free the pages.
-    }
-    // If the requested size is equal to the current size, do nothing.
+	if(size % PAGE_SIZE) {
+		size += (PAGE_SIZE - size % PAGE_SIZE);
+	}
 
-    // Update the process's data segment size.
-    p->vm_data_size = size;
+	if(size > p->vm_data_size) {
+		uint32_t start = PROCESS_ENTRY_POINT + p->vm_data_size;
+		pagetable_alloc(p->pagetable, start, size, PAGE_FLAG_USER | PAGE_FLAG_READWRITE | PAGE_FLAG_CLEAR);
+	} else if(size < p->vm_data_size) {
+		uint32_t start = PROCESS_ENTRY_POINT + size;
+		pagetable_free(p->pagetable, start, p->vm_data_size);
+	} else {
+		// requested size is equal to current.
+	}
 
-    // Refresh the page table to apply the changes.
-    pagetable_refresh();
+	p->vm_data_size = size;
+	pagetable_refresh();
 
-    return 0;  // Return success.
+	return 0;
 }
 
 int process_stack_size_set(struct process *p, unsigned size)
@@ -196,27 +248,27 @@ void process_stack_reset(struct process *p, unsigned size)
 
 struct process *process_create()
 {
-	struct process *p; // Declare a pointer to a process structure . 
+	struct process *p;
 
-	p = page_alloc(1); // Allocate a page of memory for the process structure and zero it out.
+	p = page_alloc(1);
 
-	p->pid = process_allocate_pid(); // Allocate a unique process ID (PID) for the process using process_allocate_pid().
-	process_table[p->pid] = p; // Insert the process into the global process table, indexed by its PID
+	p->pid = process_allocate_pid();
+	process_table[p->pid] = p;
 
-	p->pagetable = pagetable_create(); // create a page table for the process 
-	pagetable_init(p->pagetable); 
+	p->pagetable = pagetable_create();
+	pagetable_init(p->pagetable);
 
 	p->vm_data_size = 0;
 	p->vm_stack_size = 0;
 
-	process_data_size_set(p, 2 * PAGE_SIZE);  
+	process_data_size_set(p, 2 * PAGE_SIZE);
 	process_stack_size_set(p, 2 * PAGE_SIZE);
 
-	p->kstack = page_alloc(1); // return the page address 
-	p->kstack_top = p->kstack + PAGE_SIZE - 8; 
+	p->kstack = page_alloc(1);
+	p->kstack_top = p->kstack + PAGE_SIZE - 8;
 	p->kstack_ptr = p->kstack_top - sizeof(struct x86_stack);
 
-	process_kstack_reset(p, PROCESS_ENTRY_POINT); 
+	process_kstack_reset(p, PROCESS_ENTRY_POINT);
 
 	// XXX table should be allocated
 	int i;
@@ -306,12 +358,32 @@ static void process_switch(int newstate)
 
 int allow_preempt = 0;
 
+
 void process_preempt()
 {
-	if(allow_preempt && current && ready_list.head) {
-		process_switch(PROCESS_STATE_READY);
+	if (current_process != NULL) {
+		// Save the current process state
+		save_process_state(current_process);
+
+		// If the process is not finished, enqueue it back to the ready queue
+		if (current_process->remaining_time > 0) {
+			enqueue_process(&ready_queue, current_process);
+		}
+	}
+
+	// Select the next process to run
+	current_process = dequeue_process(&ready_queue);
+
+	// If a process was selected, restore its state and run it
+	if (current_process != NULL) {
+		// Reset its time slice for Round Robin
+		current_process->time_slice = 10;  // Set the time slice to match clock.c
+
+		// Restore the process state
+		restore_process_state(current_process);
 	}
 }
+
 
 void process_yield()
 {
