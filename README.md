@@ -1,7 +1,5 @@
 # Stage-OS
 
-To create a README for your `process.c` file that matches the style of your existing README, including diagrams and detailed descriptions, I will provide a structured format. This format will describe the scheduling algorithm, how it works, and include visual representations similar to your current README.
-
 ---
 
 # Process Management and Scheduling
