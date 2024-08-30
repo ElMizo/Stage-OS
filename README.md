@@ -1,3 +1,51 @@
+<h1 align="center" style="font-family: Georgia, serif;">CHANGES IN keyboard.c</h1>
+
+This section focuses on the changes and additions to keyboard.c and other related files that manage PS/2 keyboard input. The goal is to facilitate the inclusion of a user-defined keymap alongside the one already provided. Although it may seem simple, this process requires knowledge of specific concepts. While some may argue that the PS/2 standard is obsolete, it's important to note that the code and algorithms provided can be adapted with a few changes to be compatible with HID USB keyboards. So, bear with the guide and enjoy the ride!
+
+# PS/2 Keyboards in 100 seconds
+
+Every keyboard (even a remote control keyboard) arranges all the physical keys in a matrix to make the circuits more compact. You can see a quick example in [Reference 1]. The keyboard controller is responsible for converting the key matrix signal into a meaningful signal; in our case, with a PS/2 keyboard, we call it a scancode.
+
+<p align="center">
+  <img src="Picture1.png">
+</p>
+
+This scancode is sandwiched between a start bit and a parity bit before the stop bit. Note that PS/2 keyboards were designed by IBM in 1987; however, their 1983 systems were already made to support them. Each key has a specific attributed scancode. In 1983, IBM introduced a specific set known as scancode set 1. In 1984, they released an updated version that was widely used, called scancode set 2. There is also a niche scancode set 3 that is rarely used. In any case, [Reference 2] contains all three scancode sets.
+
+<p align="center">
+  <img src="Ps2_de_keyboard_scancode_set_1.svg.png">
+</p>
+
+Basekernel supports scancode set 1, which is thankfully the easiest to work with. Before continuing, let me mention that a scancode is an 8-bit string where the most significant bit indicates whether the key is pressed or released. This allows for the mapping of 128 keys, which is not sufficient. IBM anticipated this issue and reserved the scancode E0 as a prefix for extra keys. For example, pressing the key "8" on your numpad generates the scancode 0x48, while pressing the "up arrow" key generates the scancode 0xE0 followed by 0x48. Systems that are not designed to support the "up arrow" key will ignore both E0 and the subsequent scancode, preventing it from being misinterpreted as "8." To gain a clearer understanding, check the 23:54 timestamp of [Reference 3] along with the protocol section of [Reference 4].
+
+<p align="center">
+  <img src="Picture2.png">
+</p>
+
+Now that we have that out of the way, let's focus on what matters. The task of the OS is to retrieve the scancodes sent by the keyboard and convert them into something meaningful or easier to work with. In our case, we will convert the scancodes primarily to ASCII characters. So, in technical terms, when a user presses "q," our OS is responsible for taking its scancode, 0x10 (in scancode set 1), and converting it to 113, which is the ASCII code for "q," and so on. One note is that Basekernel has provided support for only four extra keys, which are the arrow keys.
+
+# Keyboards in Basekernel
+## What we are dealing with
+
+The `keyboard.c` file contains three functions: `keyboard_init()`, which enables interrupt signal 33 and attaches to `keyboard_interrupt()`. As a result, upon pressing any key, this function will be automatically called. The `keyboard_interrupt()` function only handles the processing of the four extra keys and adapts them so they can be sent in an appropriate form to `keyboard_interrupt_l2()`, which is primarily meant for handling all other keys and their subsequent modifiers like Shift, Ctrl, and Alt.
+
+The genius of `keyboard_interrupt_l2()` is that it uses an array called `keymap`. The received scancode is used as an index; for example, for an alphanumeric key, keymap[scancode] will give us the associated ASCII character for the key pressed after the necessary processing, which you can easily understand thanks to [Reference 2] and [Reference 5].
+
+## What we brought and modified
+
+This brings us to the changes, which include the addition of the `keymap` array in its own separate file, `keymap.c`, to allow toggling between different `keymaps`: the already provided QWERTY and the AZERTY one we added, `keymap.fr.pc.c`. We also extended the `keymap` struct to include characters accessed by the Alt modifier, which are typically found on French AZERTY keyboards. This change makes it much easier for anyone to create their own `keymap` for any regional keyboard, as long as they modify `kshell.c` and change the sections from lines 236 to 258 by simply adding an if statement that requires only basic pattern recognition.
+
+These changes and the accompanying guide will not only provide support for different `keymaps` but will also equip you with the knowledge needed to recognize and address keyboard handling (especially for PS/2) in any OS source code, regardless of its size. Checking [Reference 6] will also be helpful for dealing with HID USB keyboards, keeping in mind that they are not interrupt-based like PS/2 but rather rely on a polling principle.
+
+# References
+Reference 1: <a href="https://youtube.com/shorts/SJJU6slRozk?si=1oLyI31qDhUoRLdp">Key Matrix</a><br>
+Reference 2: <a href="https://de.wikibooks.org/wiki/C-Programmierung_mit_AVR-GCC:_GPIO_Pins:_Projekt-1">The 3 scancode sets</a><br>
+Reference 3: <a href="https://youtu.be/7aXbh9VUB3U?si=dORj6p-YP_Lolrfq">Remember the timestamp 23:54</a><br>
+Reference 4: <a href="https://de.wikipedia.org/wiki/PS/2-Schnittstelle">PS/2 interface</a><br>
+Reference 5: <a href="https://wiki.osdev.org/PS/2_Keyboard">PS/2 Keyboard</a><br>
+Reference 6: <a href="https://files.microscan.com/helpfiles/ms4_help_file/ms-4_help-02-46.html">Your Startpoint if you want to support USB HID keyboards</a><br>
+
+
 <h1 align="center" style="font-family: Georgia, serif;">WHAT'S DIFFERENT IN THE MEMORY MANAGEMENT SECTION</h1>
 
 <p align="center">
