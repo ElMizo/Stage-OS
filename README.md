@@ -117,4 +117,3 @@ The `process.c` file implements a basic yet efficient process management system 
 
 ---
 
-You can add diagrams similar to the ASCII art in this example or use tools like Graphviz to generate more sophisticated diagrams. Let me know if you need any specific diagrams or further customization!
