@@ -24,6 +24,8 @@ struct list ready_list = { 0, 0 };
 struct list grave_list = { 0, 0 };
 struct list grave_watcher_list = { 0, 0 };	// parent processes are put here to wait for their children
 struct process *process_table[PROCESS_MAX_PID] = { 0 };
+int available_pid=1;
+int last=0;
 
 void process_init()
 {
@@ -85,9 +87,12 @@ pids until it is necessary to wrap around.
 
 static int process_allocate_pid()
 {
-	static int last = 0;
-
 	int i;
+
+	if(available_pid!=(++last)){
+		i=available_pid;
+		return i;
+	}
 
 	for(i = last + 1; i < PROCESS_MAX_PID; i++) {
 		if(!process_table[i]) {
@@ -195,6 +200,7 @@ struct process *process_create()
 	p = page_alloc(1);
 
 	p->pid = process_allocate_pid();
+	available_pid=last;
 	process_table[p->pid] = p;
 
 	p->pagetable = pagetable_create();
@@ -498,6 +504,7 @@ int process_reap(uint32_t pid)
 		if(p->pid == pid) {
 			list_remove(&p->node);
 			process_delete(p);
+			available_pid=pid;
 			return 0;
 		}
 		p = next;
