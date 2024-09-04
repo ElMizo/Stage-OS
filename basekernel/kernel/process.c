@@ -24,8 +24,8 @@ struct list ready_list = { 0, 0 };
 struct list grave_list = { 0, 0 };
 struct list grave_watcher_list = { 0, 0 };	// parent processes are put here to wait for their children
 struct process *process_table[PROCESS_MAX_PID] = { 0 };
-int available_pid=1;
-int last=0;
+available_pid=1;
+last=0;
 
 void process_init()
 {
@@ -89,10 +89,17 @@ static int process_allocate_pid()
 {
 	int i;
 
-	if(available_pid!=(++last)){
+	if(available_pid ==1) {
 		i=available_pid;
+		available_pid++;
 		return i;
 	}
+	else if(available_pid!=(++last)){
+		i=available_pid;
+		return i;
+	} 
+	else {
+
 
 	for(i = last + 1; i < PROCESS_MAX_PID; i++) {
 		if(!process_table[i]) {
@@ -106,6 +113,8 @@ static int process_allocate_pid()
 			last = i;
 			return i;
 		}
+	}
+	
 	}
 
 	return 0;
@@ -200,7 +209,7 @@ struct process *process_create()
 	p = page_alloc(1);
 
 	p->pid = process_allocate_pid();
-	available_pid=last;
+	available_pid=last--;
 	process_table[p->pid] = p;
 
 	p->pagetable = pagetable_create();

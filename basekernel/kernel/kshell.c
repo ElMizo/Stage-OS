@@ -180,7 +180,7 @@ static int kshell_execute(int argc, const char **argv)
 			printf("run: requires argument.\n");
 		}
 	}
-       else if(!strcmp(cmd, "process-show")){
+       else if(!strcmp(cmd, "process_show")){
 	       active_proc();
        }
        else if(!strcmp(cmd, "init")){

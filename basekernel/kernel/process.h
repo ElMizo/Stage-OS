@@ -28,7 +28,7 @@ See the file LICENSE for details.
 #define PROCESS_EXIT_KILLED   1
 
 int available_pid;
-int last = 0;
+int last;
 
 struct process {
 	struct list_node node;
