@@ -111,6 +111,12 @@ process's page table, stack, and any other allocated resources.
   - Iterates through the `grave_list`, deallocating each process's resources.
   - Removes each process from the system.
 
+#### 'New command line '
+-The clear command in this code is handled within the 'kshell_execute()' function and is used to clear the terminal screen. This is achieved by resetting the console to its initial state. 
+-" command Implementation: " :
+   - The 'strcmp(cmd, "clear")' checks if the command is "clear".
+   - When the clear command matches,the terminal screen is cleared by calling the 'console_reset()'function.
+     
 ## Conclusion
 
 The `process.c` file implements a basic yet efficient process management system with Round Robin scheduling. The algorithm ensures that all processes receive equal CPU time, making it ideal for time-sharing systems. This README provides a comprehensive overview of how the scheduling works and the key functions involved in managing processes.
