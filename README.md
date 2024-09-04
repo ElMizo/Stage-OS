@@ -116,6 +116,9 @@ process's page table, stack, and any other allocated resources.
 -" command Implementation: " :
    - The 'strcmp(cmd, "clear")' checks if the command is "clear".
    - When the clear command matches,the terminal screen is cleared by calling the 'console_reset()'function.
+   - 
+![clre](https://github.com/user-attachments/assets/604aae47-6879-4596-9a64-03087a5d6957)
+![clear](https://github.com/user-attachments/assets/d18b34ec-353f-4ac0-a1d6-48c533440eb1)
      
 ## Conclusion
 
