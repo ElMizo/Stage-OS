@@ -111,14 +111,16 @@ process's page table, stack, and any other allocated resources.
   - Iterates through the `grave_list`, deallocating each process's resources.
   - Removes each process from the system.
 
-#### 'New command line '
+#### New command line 
+
 -The clear command in this code is handled within the 'kshell_execute()' function and is used to clear the terminal screen. This is achieved by resetting the console to its initial state. 
 -" command Implementation: " :
    - The 'strcmp(cmd, "clear")' checks if the command is "clear".
    - When the clear command matches,the terminal screen is cleared by calling the 'console_reset()'function.
-   - 
+
+![clear](https://github.com/user-attachments/assets/d18b34ec-353f-4ac0-a1d6-48c533440eb1)    
 ![clre](https://github.com/user-attachments/assets/604aae47-6879-4596-9a64-03087a5d6957)
-![clear](https://github.com/user-attachments/assets/d18b34ec-353f-4ac0-a1d6-48c533440eb1)
+
      
 ## Conclusion
 
