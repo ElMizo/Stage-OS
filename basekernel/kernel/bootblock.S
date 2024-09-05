@@ -13,7 +13,36 @@ _start2:
     movw $0x0000, %ax       # Set up the stack
     movw %ax, %ss
     movw $0xfff0, %sp
+    movb $0x00, %ah         # Set video mode
+    movb $0x03, %al         # 80x25 text mode
+    int $0x10
+    jc errormsg
 
+firstcredits:
+    movw $dthain_creds, %si   # Print credits
+    call bios_putstring
+
+firstkeypress:
+    movb $0x00, %ah         # BIOS function for waiting for a key press
+    int $0x16               # BIOS interrupt for keyboard service
+    jc errormsg
+    cmpb $0x1C, %ah        # Compare key scan code with 0x1C (Enter key)
+    jne firstkeypress                # If not Enter key, repeat waiting
+
+    movb $0x00, %ah
+    movb $0x03, %al
+    int $0x10
+    jc errormsg
+
+secondcredits:
+    movw $credits_inpt, %si
+    call bios_putstring
+secondkeypress:
+    movb $0x00, %ah
+    int $0x16
+    jc errormsg
+    cmpb $0x1C, %ah
+    jne secondkeypress
     movb %dl, disk_number   # Save the disk number
     movw $partition_status, %di # Set the partition table as dest
     movw $12, %cx           # Copy 12 bytes from si to di
@@ -22,26 +51,13 @@ _start2:
     movw $loadmsg, %si      # Print initial message
     call bios_putstring
 
-    movb $0x00, %ah         # Set video mode
-    movb $0x03, %al         # 80x25 text mode
-    int $0x10
-
-
-printingcredits:
-    movw $credits_inpt, %si   # Print credits
-    call bios_putstring
-
-done:
-    movb $0x00, %ah         # BIOS function for waiting for a key press
-    int $0x16               # BIOS interrupt for keyboard service
-    cmpb $0x1C, %ah        # Compare key scan code with 0x1C (Enter key)
-    jne done                # If not Enter key, repeat waiting
 
     xorb %ah, %ah           # Reset the disk system
     int $0x13
-
+    jc errormsg
     movb $0x08, %ah         # Get the drive geometry
     int $0x13
+    jc errormsg
     andb $0x3f, %cl         # Mask off high tracks
     movb %cl, disk_sectors
     movb %ch, disk_cylinders
@@ -61,7 +77,7 @@ loadsector:
     movb $1, %al            # Load 1 sector
     movb $0x02, %ah         # Load command
     int $0x13               # Execute load
-
+    jc errormsg
     movb $'.', %al          # Display a dot
     call bios_putchar       # For each sector loaded
 
@@ -108,13 +124,17 @@ nextsector:
 loaddone:
     xorb %ah, %ah           # Reset the disk system
     int $0x13
-
+    jc errormsg
     movw $bootmsg, %si      # Print boot message
     call bios_putstring
 
     movw $0x1000, %ax       # Jump to the kernel code
     movw %ax, %ds
     ljmp $0x1000, $0x0000
+
+errormsg:
+   movw $error, %si
+   call bios_putstring
 
 bios_putstring:              # Routine to print an entire string
     movb (%si), %al
@@ -124,7 +144,7 @@ bios_putstring:              # Routine to print an entire string
     incw %si
     jmp bios_putstring
 
-	
+
 bios_putstring_done:
     ret
 
@@ -140,6 +160,8 @@ bios_putchar:                # Routine to print a single char
 
 loadmsg:
     .asciz "bootblock: loading kernel...\r\n"
+error:
+    .asciz "error"
 bootmsg:
     .asciz "\r\nbootblock: booting kernel...\r\n"
 
@@ -167,9 +189,9 @@ partition_start_lba:
 partition_length:
     .long 0
 dthain_creds:
-    .asciz "\nbasekernel"
+    .asciz "\n Basekernel by Dhtain"
 credits_inpt:
-    .asciz "\nWork by: \n\r\t-Hamza Aarab\n\r\t-Hassan Labyad\n\r\t-Khalid ElKoussami\n\r\t-Abdelaali Chattaoui\n\r\t-Anas Azouane"
+    .asciz "\n Modified by:\n\r -Hamza Aarab\n\r -Hassan Labyad\n\r -Khalid ElKoussami\n\r -Abdelaali Chattaoui\n\r -Anas Azouane"
 .org 510
 bootflag:
     .word 0xaa55
