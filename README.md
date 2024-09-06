@@ -121,7 +121,6 @@ process's page table, stack, and any other allocated resources.
 ![clear](https://github.com/user-attachments/assets/d18b34ec-353f-4ac0-a1d6-48c533440eb1)    
 ![clre](https://github.com/user-attachments/assets/604aae47-6879-4596-9a64-03087a5d6957)
 
-     
 ## Conclusion
 
 The `process.c` file implements a basic yet efficient process management system with Round Robin scheduling. The algorithm ensures that all processes receive equal CPU time, making it ideal for time-sharing systems. This README provides a comprehensive overview of how the scheduling works and the key functions involved in managing processes.
