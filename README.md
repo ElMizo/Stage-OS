@@ -245,7 +245,7 @@ This section focuses on the changes and additions to bootblock.S. Added two boot
 
 ## Error Handling
 
-//to be competed
+//to be completed
 
 # Process Handling
 
@@ -259,11 +259,19 @@ The processes have unique identification numbers or IDs unique to said process n
 
 Let's brreak down the last bullet point. In the case where a process isn't deleted, Dthain's algorithm is the that is working to look for a free PID to allocate. It goes as follows :
 
+<p align="center">
+  <img src="Schematic1.png">
+</p>
+
 <h3 align="center" style="font-family: Georgia, serif;">schematic 1</h3>
 
 The program first loops from the last used pid to `PROCESS_MAX_PID`, which is 1024 in this configuration, then it gives the variable `last` the value of the next PID in case it was free. Once that PID is found, it loops from `1` to `last` looking for a free PID. This time, when that PID is foudn, it's the one returned by `process_alocate_pid` and is then used by `process_create` to create a process with said PID. 
 
 Why start from `1`? The process with the ID=`0` is the parent process, all created processes inherit from this one.
+
+<p align="center">
+  <img src="Schematic2.png">
+</p>
 
 <h3 align="center" style="font-family: Georgia, serif;">schematic 2</h3>
 
