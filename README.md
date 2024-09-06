@@ -234,5 +234,51 @@ Paging breaks down memory into fixed-size blocks called "pages" for the process'
     |   to physical |           |               |
     |   page)       |           |               |
     +---------------+           +---------------+
+
+# Bootblock
+
+In the original code, we can see that bios interrupts are called without being followed by carry jumps in case of an error, we fixed that!
+
+## Bootscreen
+
+This section focuses on the changes and additions to bootblock.S. Added two bootsceens: The first one displays "Basekernel" and gives credits to Douglas Thain, the creator of basekernel. The second one credits us, after modifying and inhancing the OS.
+
+## Error Handling
+
+//to be competed
+
+# Process Handling
+
+The processes have unique identification numbers or IDs unique to said process nad used to manage it, changing it's state for example (waiting/running/stopped...). In basekernel it is done using various function, notably `process_create` `process_allocate_pid` `process_delete` `process_reap`.
+
+## Process Management
+
+-Added a process spawner function ('init')
+-Added the ability to show process's ID 
+-Optimized the process ID allocation to be more efficient in the case of a deleted process.
+
+Let's brreak down the last bullet point. In the case where a process isn't deleted, Dthain's algorithm is the that is working to look for a free PID to allocate. It goes as follows :
+
+<h3 align="center" style="font-family: Georgia, serif;">schematic 1</h3>
+
+The program first loops from the last used pid to `PROCESS_MAX_PID`, which is 1024 in this configuration, then it gives the variable `last` the value of the next PID in case it was free. Once that PID is found, it loops from `1` to `last` looking for a free PID. This time, when that PID is foudn, it's the one returned by `process_alocate_pid` and is then used by `process_create` to create a process with said PID. 
+
+Why start from `1`? The process with the ID=`0` is the parent process, all created processes inherit from this one.
+
+<h3 align="center" style="font-family: Georgia, serif;">schematic 2</h3>
+
+Our optimisation targets the case where a process is deleted. When a process gets deleted by the functions `process_delete` and `process_reap`, it's 100% sure to be free. And so when a process gets deleted, instead of looping, the next process to get created gets the PID of it's predecessor.
+
+# KShell Utilities 
+
+-Added a history to the kernel shell commands allowing the user to go through them using the up and down arrow keys.
+-Updated the `help`command.
+
+## KShell Commands
+
+-Added the following commands:
+- `kb_layout` : changes the keyboard language layout and displays the available ones. (currently supports en-US and fr-FR). The argument `help` provides the available commands as well as some arguments.
+- `process_show` : displays all the running processes' IDs
+
 ## Conclusion
 Paging is a critical concept in modern operating systems that helps manage memory efficiently by breaking logical memory into fixed-size pages and mapping them to physical frames.
