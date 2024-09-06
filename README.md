@@ -263,7 +263,7 @@ Let's brreak down the last bullet point. In the case where a process isn't delet
   <img src="Schematic1.png">
 </p>
 
-<h3 align="center" style="font-family: Georgia, serif;">schematic 1</h3>
+<h3 align="center" style="font-family: Georgia, serif;">Schematic 1</h3>
 
 The program first loops from the last used pid to `PROCESS_MAX_PID`, which is 1024 in this configuration, then it gives the variable `last` the value of the next PID in case it was free. Once that PID is found, it loops from `1` to `last` looking for a free PID. This time, when that PID is foudn, it's the one returned by `process_alocate_pid` and is then used by `process_create` to create a process with said PID. 
 
@@ -273,7 +273,7 @@ Why start from `1`? The process with the ID=`0` is the parent process, all creat
   <img src="Schematic2.png">
 </p>
 
-<h3 align="center" style="font-family: Georgia, serif;">schematic 2</h3>
+<h3 align="center" style="font-family: Georgia, serif;">Schematic 2</h3>
 
 Our optimisation targets the case where a process is deleted. When a process gets deleted by the functions `process_delete` and `process_reap`, it's 100% sure to be free. And so when a process gets deleted, instead of looping, the next process to get created gets the PID of it's predecessor.
 
