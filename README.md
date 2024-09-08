@@ -243,9 +243,6 @@ In the original code, we can see that bios interrupts are called without being f
 
 This section focuses on the changes and additions to bootblock.S. Added two bootsceens: The first one displays "Basekernel" and gives credits to Douglas Thain, the creator of basekernel. The second one credits us, after modifying and inhancing the OS.
 
-## Error Handling
-
-//to be completed
 
 # Process Handling
 
