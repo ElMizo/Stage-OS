@@ -1,0 +1,8 @@
+flex
+libmpfr-dev
+libgmp3-dev
+libmpc-dev
+bison
+texinfo
+make
+
